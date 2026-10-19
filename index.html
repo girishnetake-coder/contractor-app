@@ -41,32 +41,23 @@
         .login-action-btn:active { box-shadow: 0 0 0 #360880; }
         .wa-btn { background: linear-gradient(135deg, #25D366, #128C7E); box-shadow: 0 5px 0 #0e6b60; }
         .wa-btn:active { box-shadow: 0 0 0 #0e6b60; }
+        .bank-btn { background: linear-gradient(135deg, #ff9800, #e68a00); box-shadow: 0 5px 0 #b36b00; }
+        .bank-btn:active { box-shadow: 0 0 0 #b36b00; }
         
         .reset-btn { background: #6c757d; font-size: 14px; padding: 12px; margin-top: 20px; box-shadow: 0 4px 0 #4e555b; display: none; }
         .reset-btn:active { box-shadow: 0 0 0 #4e555b; }
 
         /* ⭐️ पिवळा बॉक्स आणि लाल बॉर्डर */
         .app-header { 
-            text-align: center; 
-            margin-bottom: 20px; 
-            background: #FFD700; 
-            color: #000; 
-            padding: 20px; 
-            border-radius: 15px; 
-            border: 4px solid #FF0000; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3); 
+            text-align: center; margin-bottom: 20px; background: #FFD700; color: #000; 
+            padding: 20px; border-radius: 15px; border: 4px solid #FF0000; box-shadow: 0 5px 15px rgba(0,0,0,0.3); 
         }
         
         .logo-circle { 
-            width: 70px; height: 70px; 
-            background: #fff; 
-            color: #FF0000; 
-            border-radius: 50%; 
-            display: inline-flex; justify-content: center; align-items: center; 
+            width: 70px; height: 70px; background: #fff; color: #FF0000; 
+            border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; 
             font-size: 24px; font-weight: bold; margin-bottom: 10px; 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3); 
-            border: 4px solid #FF0000; 
-            cursor: pointer; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3); border: 4px solid #FF0000; cursor: pointer; 
         }
         
         .app-header h1 { margin: 0; font-size: 18px; letter-spacing: 1px; text-transform: uppercase; color: #000; font-weight: 900; }
@@ -95,16 +86,16 @@
         .point-workers-list { padding: 10px; background: #fdfdfd; display: none; border-top: 1px solid #ccc; }
 
         .report-section { border: 2px dashed #007bff; padding: 15px; border-radius: 10px; margin-top: 20px; background: #f8f9fa; }
+        .bank-section { border: 2px solid #ff9800; padding: 15px; border-radius: 10px; margin-top: 20px; background: #fff8e1; }
         
         .pdf-container { position: absolute; left: -9999px; top: 0; width: 800px; background: white; padding: 40px; font-family: sans-serif; color: #000; }
         .pdf-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .pdf-table th, .pdf-table td { border: 1px solid #333; padding: 10px; text-align: left; }
+        .pdf-table th, .pdf-table td { border: 1px solid #333; padding: 10px; text-align: left; font-size: 14px; }
         .pdf-table th { background: #eee; }
     </style>
 </head>
 <body>
 
-    <!-- लॉगिन स्क्रीन -->
     <div id="portalScreen" class="screen">
         <div class="app-header">
             <div class="logo-circle" onclick="handleLogoClick()">DGN</div>
@@ -148,14 +139,12 @@
         <button id="btnResetDevice" class="action-btn reset-btn" onclick="resetDeviceLock()">🔄 Change Company / Reset App</button>
     </div>
 
-    <!-- मुख्य ॲप स्क्रीन -->
     <div id="appScreen" class="screen" style="display: none;">
         <header>
             <div>
                 <h2 id="welcomeText">Welcome</h2>
                 <span id="companyDisplay" class="company-tag"></span>
             </div>
-            <!-- ⭐️ हे बटन फक्त लॉगआउट करेल, रोल बदलणार नाही -->
             <button class="logout-btn" onclick="logout()">Logout</button>
         </header>
 
@@ -205,6 +194,14 @@
                 <button class="action-btn overall-btn" onclick="generateWorkerOwnPDF()">📥 Download My PDF</button>
                 <button class="action-btn wa-btn" onclick="sendWorkerPDFToSupervisor()">🟢 Send to Supervisor on WhatsApp</button>
             </div>
+
+            <div class="bank-section">
+                <h3>🏦 My Bank Details (Salary)</h3>
+                <input type="text" id="wBankName" placeholder="Bank Name (e.g. SBI)">
+                <input type="text" id="wAccNo" placeholder="Account Number">
+                <input type="text" id="wIfsc" placeholder="IFSC Code">
+                <button class="action-btn bank-btn" onclick="saveBankDetails()">Save Bank Details</button>
+            </div>
             
             <h4 style="margin-top:20px;">Your History:</h4>
             <div id="workerHistoryList"></div>
@@ -230,12 +227,9 @@
                 <button class="action-btn overall-btn" onclick="generateOverallPDF()">2️⃣ Overall Workers Report</button>
                 
                 <hr style="margin: 15px 0; border-top: 1px solid #ccc;">
-                <h4>3️⃣ Bank Salary Slip</h4>
-                <select id="selectWorkerForSlip">
-                    <option value="">-- Select Worker --</option>
-                </select>
-                <input type="number" id="dailyWageInput" placeholder="Daily Wage (e.g. 500)" value="500">
-                <button class="action-btn pdf-btn" onclick="generateBankSlipPDF()">📥 Download Salary Slip</button>
+                <h4>3️⃣ Bank Payment List</h4>
+                <button class="action-btn bank-btn" onclick="generateBankListPDF()">🏦 Download Bank Payment List</button>
+                <button class="action-btn" style="background:#6c757d; box-shadow: 0 5px 0 #4e555b;" onclick="editBankDetails()">✏️ Edit Bank & Payment Details</button>
             </div>
         </div>
     </div>
@@ -269,29 +263,22 @@
         </table>
     </div>
 
-    <div id="pdfBankSlip" class="pdf-container">
-        <h2 style="text-align:center;">Salary Slip</h2>
-        <div style="display:flex; justify-content:space-between; margin-top:20px;">
-            <div><strong>Company:</strong> <span id="bsCompany"></span></div>
-            <div><strong>Date:</strong> <span id="bsDate"></span></div>
-        </div>
-        <hr>
-        <div style="margin-top:20px; font-size:18px;">
-            <p><strong>Worker Name:</strong> <span id="bsName"></span></p>
-            <p><strong>Mobile:</strong> <span id="bsMobile"></span></p>
-            <p><strong>Point:</strong> <span id="bsPoint"></span></p>
-            <br>
-            <table class="pdf-table">
-                <tr><th>Total Working Days</th><td id="bsDays"></td></tr>
-                <tr><th>Daily Wage (₹)</th><td id="bsWage"></td></tr>
-                <tr style="background:#e8f5e9; font-size:20px;"><th>Total Salary (₹)</th><td id="bsTotal" style="font-weight:bold;"></td></tr>
-            </table>
-        </div>
-        <br><br><br>
-        <div style="display:flex; justify-content:space-between; margin-top:50px;">
-            <p>_______________________<br>Worker Signature</p>
-            <p>_______________________<br>Officer Signature</p>
-        </div>
+    <div id="pdfBankList" class="pdf-container">
+        <h2 style="text-align:center;">Bank Payment List</h2>
+        <p style="text-align:center;">Company: <span id="blCompany"></span> | Date: <span id="blDate"></span></p>
+        <table class="pdf-table">
+            <thead>
+                <tr>
+                    <th>Sr.No.</th>
+                    <th>Worker Name</th>
+                    <th>Bank Name</th>
+                    <th>A/c Number</th>
+                    <th>IFSC Code</th>
+                    <th>Total Amount (₹)</th>
+                </tr>
+            </thead>
+            <tbody id="blTableBody"></tbody>
+        </table>
     </div>
 
     <script>
@@ -303,13 +290,11 @@
         let logoTapCount = 0;
         let logoTapTimer;
 
-        // ⭐️ ३ वेळा टॅप = रोल बदलण्यासाठी ॲप अनलॉक, ५ वेळा टॅप = रिसेट बटन
         function handleLogoClick() {
             logoTapCount++;
             clearTimeout(logoTapTimer);
 
             if (logoTapCount === 5) {
-                // ५ वेळा टॅप -> रिसेट बटन दाखवा
                 const resetBtn = document.getElementById('btnResetDevice');
                 if (resetBtn) {
                     resetBtn.style.display = 'block';
@@ -317,13 +302,11 @@
                 }
                 logoTapCount = 0; 
             } else if (logoTapCount === 3) {
-                // ३ वेळा टॅप -> फोन अनलॉक करा आणि लॉगआउट करा (टेस्टिंगसाठी)
                 logoTapTimer = setTimeout(() => {
                     if (logoTapCount === 3) {
                         logoTapCount = 0;
-                        // फोनचा रोल लॉक काढून टाका जेणेकरून नवीन रोल निवडता येईल
                         localStorage.removeItem('deviceRoleLock'); 
-                        logout(); // हे आपोआप activeWorker/Officer पुसून रिफ्रेश करेल
+                        logout(); 
                     }
                 }, 1000);
             } else {
@@ -337,7 +320,6 @@
             const deviceRoleLock = localStorage.getItem('deviceRoleLock'); 
             const savedCompany = localStorage.getItem('savedCompanyCode');
 
-            // जर कंपनी आधीच सेव्ह असेल तर ती आपोआप भरलेली दिसेल
             if (savedCompany) {
                 document.getElementById('wLoginCompany').value = savedCompany;
                 document.getElementById('officerCompany').value = savedCompany;
@@ -347,7 +329,6 @@
                 document.getElementById('officerCompany').style.backgroundColor = '#e9ecef';
             }
 
-            // ⭐️ डिव्हाइस लॉक तपासणे
             if (deviceRoleLock === 'worker') {
                 document.getElementById('btnPortalOfficer').style.display = 'none'; 
                 showLogin('worker');
@@ -366,7 +347,6 @@
                 document.getElementById('btnPortalOfficer').style.display = 'block';
             }
 
-            // ⭐️ जर आधीच लॉगिन असेल तर थेट डॅशबोर्ड उघडा
             const activeWorker = localStorage.getItem('activeWorker');
             const activeOfficer = localStorage.getItem('activeOfficer');
             const activeCompany = localStorage.getItem('activeCompany');
@@ -382,7 +362,6 @@
             }
         };
 
-        // ⭐️ ५ वेळा टॅपनंतरचं रिसेट फंक्शन (PIN टाकून कंपनी बदलण्यासाठी)
         function resetDeviceLock() {
             let ownerPin = prompt("Enter PIN:"); 
             if (ownerPin === '1111') {
@@ -425,7 +404,6 @@
             localStorage.setItem('activeWorker', name); 
             localStorage.setItem('workerMobile', mobile); 
             localStorage.setItem('activeCompany', company);
-            
             localStorage.setItem('deviceRoleLock', 'worker'); 
             
             showDashboard('worker', name, company);
@@ -449,13 +427,11 @@
             }
 
             localStorage.setItem('savedCompanyCode', company);
-            currentCompanyCode = company;
-            currentOfficerRole = role;
+            currentCompanyCode = company; currentOfficerRole = role;
             
             localStorage.setItem('activeOfficer', name); 
             localStorage.setItem('officerRole', role); 
             localStorage.setItem('activeCompany', company);
-
             localStorage.setItem('deviceRoleLock', role); 
 
             showDashboard('officer', name, company);
@@ -466,6 +442,34 @@
             if (point === "") { alert("Please enter point name!"); return; }
             localStorage.setItem('workerPoint_' + currentCompanyCode, point);
             showDashboard('worker', currentWorkerName, currentCompanyCode);
+        }
+
+        function saveBankDetails() {
+            const bank = document.getElementById('wBankName').value.trim();
+            const acc = document.getElementById('wAccNo').value.trim();
+            const ifsc = document.getElementById('wIfsc').value.trim();
+            
+            if (bank === "" || acc === "" || ifsc === "") {
+                alert("Please fill all bank details!"); return;
+            }
+
+            let bankData = JSON.parse(localStorage.getItem('bankData')) || {};
+            // जुना कस्टम अमाउंट असेल तर तो सेव्ह ठेवा
+            let existingAmount = (bankData[currentWorkerName] && bankData[currentWorkerName].customAmount) ? bankData[currentWorkerName].customAmount : null;
+            
+            bankData[currentWorkerName] = { bank: bank, acc: acc, ifsc: ifsc, customAmount: existingAmount };
+            localStorage.setItem('bankData', JSON.stringify(bankData));
+            
+            alert("✅ Bank Details Saved Successfully!");
+        }
+
+        function loadBankDetails() {
+            let bankData = JSON.parse(localStorage.getItem('bankData')) || {};
+            if (bankData[currentWorkerName]) {
+                document.getElementById('wBankName').value = bankData[currentWorkerName].bank;
+                document.getElementById('wAccNo').value = bankData[currentWorkerName].acc;
+                document.getElementById('wIfsc').value = bankData[currentWorkerName].ifsc;
+            }
         }
 
         function showDashboard(type, name, company) {
@@ -490,6 +494,7 @@
                     checkWorkerStatus(); 
                 }
                 loadWorkerHistory(name, company);
+                loadBankDetails(); 
             } else {
                 document.getElementById('officerView').style.display = 'block';
                 if (currentOfficerRole === 'supervisor') {
@@ -536,7 +541,6 @@
             }
         }
 
-        // ⭐️ नॉर्मल लॉगआउट (फोन लॉक राहील, पुन्हा तोच रोल येईल)
         function logout() {
             localStorage.removeItem('activeWorker'); 
             localStorage.removeItem('workerMobile');
@@ -658,8 +662,10 @@
             let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
             let uniqueWorkers = [...new Set(companyRecords.map(rec => rec.name))];
             const select = document.getElementById('selectWorkerForSlip');
-            select.innerHTML = '<option value="">-- Select Worker --</option>';
-            uniqueWorkers.forEach(w => { select.innerHTML += `<option value="${w}">${w}</option>`; });
+            if(select) {
+                select.innerHTML = '<option value="">-- Select Worker --</option>';
+                uniqueWorkers.forEach(w => { select.innerHTML += `<option value="${w}">${w}</option>`; });
+            }
         }
 
         function calculateOT(inTs, outTs) {
@@ -770,31 +776,76 @@
             html2pdf().set({ margin: 0.5, filename: `Overall_${currentCompanyCode}.pdf`, image: {type:'jpeg', quality:0.98}, html2canvas: {scale:2}, jsPDF: {unit:'in', format:'letter', orientation:'portrait'} }).from(document.getElementById('pdfOverall')).save();
         }
 
-        function generateBankSlipPDF() {
-            let selectedWorker = document.getElementById('selectWorkerForSlip').value;
-            let dailyWage = document.getElementById('dailyWageInput').value;
-
-            if (!selectedWorker) { alert("Please select a worker!"); return; }
-            if (!dailyWage || dailyWage <= 0) { alert("Please enter valid daily wage!"); return; }
-
+        function generateBankListPDF() {
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
-            let workerRecords = records.filter(rec => rec.company === currentCompanyCode && rec.name === selectedWorker);
-            if (workerRecords.length === 0) { alert("No attendance for this worker."); return; }
+            let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
+            if (companyRecords.length === 0) { alert("No attendance data found."); return; }
 
-            let totalDays = workerRecords.length; 
-            let latestPoint = workerRecords[workerRecords.length-1].point; 
-            let totalAmount = totalDays * dailyWage;
+            let bankData = JSON.parse(localStorage.getItem('bankData')) || {};
+            let defaultWage = prompt("Enter Default Daily Wage (e.g. 500):", "500");
+            if (!defaultWage || defaultWage <= 0) { return; }
 
-            document.getElementById('bsCompany').innerText = currentCompanyCode;
-            document.getElementById('bsDate').innerText = new Date().toLocaleDateString('en-GB');
-            document.getElementById('bsName').innerText = selectedWorker;
-            document.getElementById('bsMobile').innerText = workerRecords[0].mobile;
-            document.getElementById('bsPoint').innerText = latestPoint;
-            document.getElementById('bsDays').innerText = totalDays;
-            document.getElementById('bsWage').innerText = dailyWage;
-            document.getElementById('bsTotal').innerText = totalAmount;
+            let workerStats = {};
+            companyRecords.forEach(rec => {
+                if(!workerStats[rec.name]) workerStats[rec.name] = { days: 0 };
+                workerStats[rec.name].days += 1;
+            });
 
-            html2pdf().set({ margin: 0.5, filename: `SalarySlip_${selectedWorker}.pdf`, image: {type:'jpeg', quality:0.98}, html2canvas: {scale:2}, jsPDF: {unit:'in', format:'letter', orientation:'portrait'} }).from(document.getElementById('pdfBankSlip')).save();
+            document.getElementById('blCompany').innerText = currentCompanyCode;
+            document.getElementById('blDate').innerText = new Date().toLocaleDateString('en-GB');
+            
+            const tbody = document.getElementById('blTableBody');
+            tbody.innerHTML = '';
+            let i = 1;
+            for(let name in workerStats) {
+                let bData = bankData[name] || { bank: 'N/A', acc: 'N/A', ifsc: 'N/A', customAmount: null };
+                // जर कस्टम अमाउंट टाकला असेल तर तो वापरा, नाहीतर हजेरी x रोजंदारी करा
+                let finalAmount = bData.customAmount !== null ? bData.customAmount : (workerStats[name].days * defaultWage);
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${i++}</td>
+                        <td>${name}</td>
+                        <td>${bData.bank}</td>
+                        <td>${bData.acc}</td>
+                        <td>${bData.ifsc}</td>
+                        <td style="font-weight:bold;">₹ ${finalAmount}</td>
+                    </tr>
+                `;
+            }
+
+            html2pdf().set({ margin: 0.5, filename: `BankList_${currentCompanyCode}.pdf`, image: {type:'jpeg', quality:0.98}, html2canvas: {scale:2}, jsPDF: {unit:'in', format:'letter', orientation:'landscape'} }).from(document.getElementById('pdfBankList')).save();
+        }
+
+        // ⭐️ बँक आणि पेमेंट एडिट करण्याचे फंक्शन
+        function editBankDetails() {
+            let workerName = prompt("Enter Worker Name to edit details:");
+            if (!workerName) return;
+
+            let bankData = JSON.parse(localStorage.getItem('bankData')) || {};
+            let currentBank = bankData[workerName] || { bank: '', acc: '', ifsc: '', customAmount: '' };
+
+            let newBank = prompt(`Bank Name for ${workerName}:`, currentBank.bank);
+            if (newBank === null) return; // रद्द केल्यास बाहेर पडा
+
+            let newAcc = prompt(`Account Number for ${workerName}:`, currentBank.acc);
+            if (newAcc === null) return;
+
+            let newIfsc = prompt(`IFSC Code for ${workerName}:`, currentBank.ifsc);
+            if (newIfsc === null) return;
+
+            let newAmount = prompt(`Custom Total Payment (₹) for ${workerName} (Leave blank to auto-calculate):`, currentBank.customAmount || '');
+            if (newAmount === null) return;
+
+            bankData[workerName] = { 
+                bank: newBank, 
+                acc: newAcc, 
+                ifsc: newIfsc, 
+                customAmount: (newAmount.trim() === '') ? null : parseFloat(newAmount)
+            };
+            
+            localStorage.setItem('bankData', JSON.stringify(bankData));
+            alert(`✅ Details updated for ${workerName}!`);
         }
     </script>
 </body>
