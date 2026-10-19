@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>कंट्रॅक्टर ॲप</title>
+    <!-- PDF बनवण्यासाठी लायब्ररी -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f0f2f5; color: #333; }
         .screen { padding: 20px; max-width: 500px; margin: auto; }
@@ -18,14 +21,15 @@
         .logout-btn { width: auto; padding: 8px 12px; background: #dc3545; color: white; border: none; border-radius: 5px; font-size: 14px; }
         .view { display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
         .worker-card { background: #f9f9f9; border-left: 4px solid #007bff; padding: 10px; margin-bottom: 10px; border-radius: 4px; }
-        .edit-btn { background: #ff9800; color: white; border: none; padding: 5px 10px; border-radius: 5px; margin-top: 10px; float: right; }
         .history-box { background: #e8f5e9; border: 1px solid #28a745; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center; }
         .info-badge { background: #e3f2fd; padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; margin-bottom: 15px; color: #0056b3; }
         .btn-in { background-color: #007bff !important; }
         .btn-out { background-color: #ff9800 !important; }
-        .success-msg { background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; border: 1px solid #c3e6cb; }
-        .wait-msg { background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; border: 1px solid #ffeeba; margin-top: 10px;}
+        .success-msg { background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; }
+        .wait-msg { background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; margin-top: 10px;}
         .company-tag { background: #333; color: white; padding: 3px 8px; border-radius: 5px; font-size: 12px; }
+        .tracking-box { background: #fff3cd; padding: 10px; border-radius: 5px; margin-bottom: 10px; border: 1px solid #ffeeba; }
+        .pdf-btn { background: #e91e63; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -37,7 +41,6 @@
         <button class="portal-btn worker-btn" onclick="showLogin('worker')">👷 कामगार (Worker)</button>
         <button class="portal-btn officer-btn" onclick="showLogin('officer')">👔 अधिकारी / मालक</button>
 
-        <!-- कामगार लॉगिन -->
         <div id="workerLogin" class="login-box">
             <h3>कामगार लॉगिन</h3>
             <input type="text" id="wLoginCompany" placeholder="कंपनी कोड (उदा. BUILD-01)">
@@ -46,7 +49,6 @@
             <button class="action-btn" onclick="loginWorker()">पुढे जा</button>
         </div>
 
-        <!-- अधिकारी लॉगिन -->
         <div id="officerLogin" class="login-box">
             <h3>अधिकारी लॉगिन</h3>
             <input type="text" id="officerCompany" placeholder="कंपनी कोड (उदा. BUILD-01)">
@@ -103,7 +105,6 @@
                 <div id="workCompletedMsg" class="success-msg" style="display:none;">
                     ✅ तुमचं आजचं काम पूर्ण झालं आहे!
                 </div>
-
                 <div id="statusMsg" style="color: green; text-align: center; display: none; margin-top:10px; font-weight:bold;"></div>
             </div>
             
@@ -112,20 +113,50 @@
         </div>
 
         <div id="officerView" class="view">
-            <h3>📊 आजची हजेरी</h3>
-            <p>या कंपनीचे कामावर हजर असलेले कामगार:</p>
-            <div id="attendanceList"></div>
-            <button class="action-btn" style="background:#ff9800; margin-top:15px;" onclick="showReport()">📄 दैनंदिन अहवाल</button>
-        </div>
+            <h3>📍 लाईव्ह लोकेशन ट्रॅकिंग</h3>
+            <div id="locationTrackingList"></div>
 
+            <h3>📊 आजची हजेरी</h3>
+            <div id="attendanceList"></div>
+            
+            <button class="action-btn" style="background:#ff9800; margin-top:15px;" onclick="showReport()">📄 दैनंदिन अहवाल</button>
+            <button class="action-btn pdf-btn" onclick="generatePDF()">📥 मासिक अहवाल (PDF) डाउनलोड करा</button>
+        </div>
+    </div>
+
+    <!-- PDF साठी लपवलेला भाग -->
+    <div id="pdfContent" style="display:none; padding: 20px; font-family: sans-serif;">
+        <h2 style="text-align:center;">मासिक अहवाल - <span id="pdfCompany"></span></h2>
+        <p style="text-align:center;">दिनांक: <span id="pdfDate"></span></p>
+        <table border="1" style="width:100%; border-collapse: collapse; text-align:left;">
+            <thead>
+                <tr style="background:#eee;">
+                    <th style="padding:8px;">कामगाराचे नाव</th>
+                    <th style="padding:8px;">पॉईंट</th>
+                    <th style="padding:8px;">एकूण दिवस</th>
+                </tr>
+            </thead>
+            <tbody id="pdfTableBody"></tbody>
+        </table>
     </div>
 
     <script>
         let currentWorkerName = "";
         let currentCompanyCode = "";
-        
-        // टेस्टिंगसाठी १ मिनिट (खऱ्या वापरासाठी 8 * 60 * 60 * 1000 करा)
-        const MIN_WORK_DURATION_MS = 60 * 1000; 
+        let currentOfficerRole = "";
+        const MIN_WORK_DURATION_MS = 60 * 1000; // टेस्टिंगसाठी १ मिनिट
+
+        // GPS लोकेशन मिळवणे
+        function getGPSLocation(callback) {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => callback({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                    (err) => callback(null)
+                );
+            } else {
+                callback(null);
+            }
+        }
 
         function showLogin(type) {
             document.getElementById('workerLogin').style.display = 'none';
@@ -161,16 +192,32 @@
             if (role === 'supervisor' && pin !== '3333') { alert("❌ चुकीचा सुपरवायझर पिन!"); return; }
 
             currentCompanyCode = company;
+            currentOfficerRole = role;
             localStorage.setItem('activeOfficer', name);
             localStorage.setItem('officerRole', role);
             localStorage.setItem('activeCompany', company);
-            showDashboard('officer', name, company);
+
+            // अधिकाऱ्याचे लोकेशन सेव्ह करणे (लॉगिन करताच)
+            getGPSLocation((loc) => {
+                if (loc) {
+                    let liveLocations = JSON.parse(localStorage.getItem('liveLocations')) || {};
+                    liveLocations[name] = { 
+                        role: role, 
+                        company: company, 
+                        lat: loc.lat, 
+                        lng: loc.lng, 
+                        time: new Date().toLocaleTimeString('mr-IN') 
+                    };
+                    localStorage.setItem('liveLocations', JSON.stringify(liveLocations));
+                }
+                showDashboard('officer', name, company);
+            });
         }
 
         function saveWorkerPoint() {
             const point = document.getElementById('wPoint').value;
             if (point === "") { alert("कृपया पॉईंटचे नाव टाका!"); return; }
-            localStorage.setItem('workerPoint_' + currentCompanyCode, point); // कंपनीनुसार पॉईंट सेव्ह करा
+            localStorage.setItem('workerPoint_' + currentCompanyCode, point);
             showDashboard('worker', currentWorkerName, currentCompanyCode);
         }
 
@@ -200,14 +247,58 @@
             } else {
                 document.getElementById('officerView').style.display = 'block';
                 loadOfficerAttendance();
+                loadLocationTracking(name, currentOfficerRole); // लोकेशन लोड करा
             }
+        }
+
+        // ⭐️ लोकेशन ट्रॅकिंग (रोलनुसार फिल्टर)
+        function loadLocationTracking(currentOfficerName, role) {
+            const listDiv = document.getElementById('locationTrackingList');
+            let liveLocations = JSON.parse(localStorage.getItem('liveLocations')) || {};
+            let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
+            
+            listDiv.innerHTML = '';
+            let found = false;
+
+            // कामगारांचे लोकेशन (फक्त हजेरीतून)
+            let companyWorkers = records.filter(r => r.company === currentCompanyCode && r.lat && r.lng);
+            
+            // अधिकाऱ्यांचे लोकेशन
+            for (let name in liveLocations) {
+                let loc = liveLocations[name];
+                if (loc.company !== currentCompanyCode) continue; // दुसऱ्या कंपनीचे नाही
+
+                if (role === 'owner') {
+                    found = true;
+                    listDiv.innerHTML += `<div class="tracking-box"><strong>${name}</strong> (${loc.role})<br>📍 <a href="https://maps.google.com/?q=${loc.lat},${loc.lng}" target="_blank">Google Maps वर पहा</a> | ⏰ ${loc.time}</div>`;
+                } else if (role === 'field_officer' && loc.role === 'supervisor') {
+                    found = true;
+                    listDiv.innerHTML += `<div class="tracking-box"><strong>${name}</strong> (सुपरवायझर)<br>📍 <a href="https://maps.google.com/?q=${loc.lat},${loc.lng}" target="_blank">Google Maps वर पहा</a> | ⏰ ${loc.time}</div>`;
+                }
+            }
+
+            // कामगारांचे लोकेशन फक्त मालक, फिल्ड ऑफिसर आणि सुपरवायझरला दिसेल
+            if (role === 'owner' || role === 'field_officer' || role === 'supervisor') {
+                let uniqueWorkers = [];
+                companyWorkers.forEach(w => {
+                    // फक्त आजचे आणि IN असलेले
+                    if (!uniqueWorkers.find(uw => uw.name === w.name)) {
+                        uniqueWorkers.push(w);
+                    }
+                });
+                
+                uniqueWorkers.forEach(w => {
+                    found = true;
+                    listDiv.innerHTML += `<div class="tracking-box" style="border-color:#28a745; background:#e8f5e9;"><strong>${w.name}</strong> (कामगार)<br>📍 पॉईंट: ${w.point} | <a href="https://maps.google.com/?q=${w.lat},${w.lng}" target="_blank">Google Maps वर पहा</a></div>`;
+                });
+            }
+
+            if (!found) listDiv.innerHTML = '<p>कोणतेही लोकेशन उपलब्ध नाही.</p>';
         }
 
         function checkWorkerStatus() {
             const today = new Date().toLocaleDateString('mr-IN');
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
-            
-            // फक्त या कंपनीचा आणि या कामगाराचा रेकॉर्ड शोधा
             let todayRecord = records.find(r => r.company === currentCompanyCode && r.name === currentWorkerName && r.date === today);
 
             document.getElementById('btnInContainer').style.display = 'none';
@@ -219,12 +310,10 @@
                 document.getElementById('btnInContainer').style.display = 'block';
             } else if (todayRecord && !todayRecord.outTime) {
                 document.getElementById('btnOutContainer').style.display = 'block';
-                
                 let timePassed = Date.now() - todayRecord.inTimestamp;
                 if (timePassed < MIN_WORK_DURATION_MS) {
                     let remaining = MIN_WORK_DURATION_MS - timePassed;
-                    let minsLeft = Math.ceil(remaining / (1000 * 60));
-                    document.getElementById('waitMsg').innerText = `⏳ कृपया अजून ${minsLeft} मिनिटं थांबा.`;
+                    document.getElementById('waitMsg').innerText = `⏳ कृपया अजून ${Math.ceil(remaining/(1000*60))} मिनिटं थांबा.`;
                     document.getElementById('waitMsg').style.display = 'block';
                 }
             } else {
@@ -248,15 +337,8 @@
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let todayRecord = records.find(r => r.company === currentCompanyCode && r.name === currentWorkerName && r.date === today);
 
-            if (type === 'OUT') {
-                if (!todayRecord) { alert("तुम्ही आज IN केलेलं नाही."); return; }
-                let timePassed = Date.now() - todayRecord.inTimestamp;
-                if (timePassed < MIN_WORK_DURATION_MS) {
-                    let remaining = MIN_WORK_DURATION_MS - timePassed;
-                    let minsLeft = Math.ceil(remaining / (1000 * 60));
-                    alert(`❌ तुम्ही अजून पुरेसा वेळ काम केले नाही! कृपया अजून ${minsLeft} मिनिटं थांबा.`);
-                    return;
-                }
+            if (type === 'OUT' && (!todayRecord || (Date.now() - todayRecord.inTimestamp) < MIN_WORK_DURATION_MS)) {
+                alert("तुम्ही अजून पुरेसा वेळ काम केले नाही!"); return;
             }
 
             const input = document.createElement('input');
@@ -265,39 +347,38 @@
             input.capture = 'environment';
             
             input.onchange = (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const currentTime = new Date().toLocaleTimeString('mr-IN');
-                    let todayRecordIndex = records.findIndex(r => r.company === currentCompanyCode && r.name === currentWorkerName && r.date === today);
+                if (e.target.files[0]) {
+                    // फोटो काढल्यावर लोकेशन घ्या आणि सेव्ह करा (कामगाराला दिसणार नाही)
+                    getGPSLocation((loc) => {
+                        const currentTime = new Date().toLocaleTimeString('mr-IN');
+                        let todayRecordIndex = records.findIndex(r => r.company === currentCompanyCode && r.name === currentWorkerName && r.date === today);
 
-                    if (type === 'IN') {
-                        const newRecord = {
-                            company: currentCompanyCode, // ⭐️ कंपनीचा कोड सेव्ह करणे
-                            name: currentWorkerName,
-                            mobile: mobile,
-                            point: point,
-                            date: today,
-                            inTime: currentTime,
-                            inTimestamp: Date.now(),
-                            outTime: "",
-                            outTimestamp: null
-                        };
-                        records.push(newRecord);
-                        document.getElementById('statusMsg').innerText = "✅ सकाळची हजेरी (IN) यशस्वी झाली!";
-                    } else if (type === 'OUT') {
-                        if (todayRecordIndex !== -1) {
+                        if (type === 'IN') {
+                            records.push({
+                                company: currentCompanyCode,
+                                name: currentWorkerName,
+                                mobile: mobile,
+                                point: point,
+                                date: today,
+                                inTime: currentTime,
+                                inTimestamp: Date.now(),
+                                outTime: "",
+                                lat: loc ? loc.lat : null, // लोकेशन सेव्ह
+                                lng: loc ? loc.lng : null
+                            });
+                        } else if (type === 'OUT' && todayRecordIndex !== -1) {
                             records[todayRecordIndex].outTime = currentTime;
                             records[todayRecordIndex].outTimestamp = Date.now();
-                            document.getElementById('statusMsg').innerText = "✅ संध्याकाळची हजेरी (OUT) यशस्वी झाली!";
+                            if(loc) { records[todayRecordIndex].lat = loc.lat; records[todayRecordIndex].lng = loc.lng; }
                         }
-                    }
 
-                    localStorage.setItem('attendanceData', JSON.stringify(records));
-                    document.getElementById('statusMsg').style.display = 'block';
-                    setTimeout(() => { document.getElementById('statusMsg').style.display = 'none'; }, 3000);
-                    
-                    checkWorkerStatus();
-                    loadWorkerHistory(currentWorkerName, currentCompanyCode);
+                        localStorage.setItem('attendanceData', JSON.stringify(records));
+                        document.getElementById('statusMsg').innerText = `✅ ${type} यशस्वी झाली!`;
+                        document.getElementById('statusMsg').style.display = 'block';
+                        setTimeout(() => { document.getElementById('statusMsg').style.display = 'none'; }, 3000);
+                        checkWorkerStatus();
+                        loadWorkerHistory(currentWorkerName, currentCompanyCode);
+                    });
                 }
             };
             input.click();
@@ -305,92 +386,105 @@
 
         function loadWorkerHistory(workerName, company) {
             let allRecords = JSON.parse(localStorage.getItem('attendanceData')) || [];
-            // फक्त या कंपनीचा आणि या कामगाराचा इतिहास
             let myRecords = allRecords.filter(rec => rec.company === company && rec.name === workerName);
-
             document.getElementById('workerTotalDays').innerText = `${myRecords.length} दिवस`;
 
             const listDiv = document.getElementById('workerHistoryList');
             listDiv.innerHTML = '';
             myRecords.reverse().forEach(rec => {
                 let timeStr = `IN: ${rec.inTime}`;
-                if (rec.outTime) { timeStr += ` | OUT: ${rec.outTime}`; }
-                listDiv.innerHTML += `
-                    <div class="worker-card" style="border-left-color: #28a745;">
-                        <strong>${rec.date}</strong> | ${timeStr}<br>
-                        <span>📍 पॉईंट: ${rec.point}</span>
-                    </div>
-                `;
+                if (rec.outTime) timeStr += ` | OUT: ${rec.outTime}`;
+                listDiv.innerHTML += `<div class="worker-card" style="border-left-color: #28a745;"><strong>${rec.date}</strong> | ${timeStr}<br><span>📍 पॉईंट: ${rec.point}</span></div>`;
             });
         }
 
         function loadOfficerAttendance() {
             const listDiv = document.getElementById('attendanceList');
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
-
-            // ⭐️ फक्त या कंपनीचे कामगार दाखवा
             let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
 
-            if (companyRecords.length === 0) {
-                listDiv.innerHTML = '<p>या कंपनीचे अजून कोणीही हजेरी लावलेली नाही.</p>'; return;
-            }
+            if (companyRecords.length === 0) { listDiv.innerHTML = '<p>हजेरी नाही.</p>'; return; }
 
             listDiv.innerHTML = '';
-            companyRecords.reverse().forEach((rec, index) => {
-                let originalIndex = records.indexOf(rec); // मूळ इंडेक्स शोधा
+            companyRecords.reverse().forEach((rec) => {
                 let timeStr = `IN: ${rec.inTime || '--'}`;
-                if (rec.outTime) { timeStr += ` | OUT: ${rec.outTime}`; }
-                else { timeStr += ` | OUT: ⏳`; }
+                if (rec.outTime) timeStr += ` | OUT: ${rec.outTime}`;
+                else timeStr += ` | OUT: ⏳`;
 
                 listDiv.innerHTML += `
                     <div class="worker-card">
                         <strong>${rec.name} (${rec.mobile})</strong><br>
                         <span>📍 पॉईंट: ${rec.point} | 📅 ${rec.date} | ${timeStr}</span>
-                        <button class="edit-btn" onclick="editRecord(${originalIndex})">✏️ एडिट</button>
-                        <div style="clear:both;"></div>
                     </div>
                 `;
             });
         }
 
-        function editRecord(originalIndex) {
-            let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
-            let rec = records[originalIndex];
-            
-            // सिक्युरिटी: फिल्ड ऑफिसर दुसऱ्या कंपनीचा डेटा एडिट करू शकणार नाही
-            if (rec.company !== currentCompanyCode) { alert("तुम्ही दुसऱ्या कंपनीचा डेटा एडिट करू शकत नाही!"); return; }
-
-            let newPoint = prompt("पॉईंटचे नाव बदला:", rec.point);
-            if (newPoint !== null) {
-                rec.point = newPoint;
-                localStorage.setItem('attendanceData', JSON.stringify(records));
-                loadOfficerAttendance();
-            }
-        }
-
         function showReport() {
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
-            
-            if (companyRecords.length === 0) { alert("आज कोणतीही हजेरी नाही."); return; }
-
+            if (companyRecords.length === 0) { alert("हजेरी नाही."); return; }
             let reportText = `--- दैनंदिन अहवाल (${currentCompanyCode}) ---\n\n`;
-            companyRecords.forEach(rec => { 
-                let timeStr = `IN: ${rec.inTime}`;
-                if(rec.outTime) timeStr += ` | OUT: ${rec.outTime}`;
-                reportText += `${rec.name} - ${rec.point} (${timeStr})\n`; 
-            });
+            companyRecords.forEach(rec => { reportText += `${rec.name} - ${rec.point}\n`; });
             alert(reportText);
+        }
+
+        // ⭐️ मासिक PDF अहवाल तयार करणे
+        function generatePDF() {
+            let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
+            let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
+
+            if (companyRecords.length === 0) { alert("PDF तयार करण्यासाठी डेटा नाही."); return; }
+
+            // कामगारांचे एकूण दिवस मोजणे
+            let workerStats = {};
+            companyRecords.forEach(rec => {
+                if (!workerStats[rec.name]) {
+                    workerStats[rec.name] = { days: 0, point: rec.point };
+                }
+                workerStats[rec.name].days += 1;
+                workerStats[rec.name].point = rec.point; // शेवटचा पॉईंट
+            });
+
+            // टेबल तयार करणे
+            const tbody = document.getElementById('pdfTableBody');
+            tbody.innerHTML = '';
+            for (let name in workerStats) {
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="padding:8px;">${name}</td>
+                        <td style="padding:8px;">${workerStats[name].point}</td>
+                        <td style="padding:8px; font-weight:bold; color:green;">${workerStats[name].days}</td>
+                    </tr>
+                `;
+            }
+
+            document.getElementById('pdfCompany').innerText = currentCompanyCode;
+            document.getElementById('pdfDate').innerText = new Date().toLocaleDateString('mr-IN');
+
+            // PDF डाउनलोड करणे
+            const element = document.getElementById('pdfContent');
+            const opt = {
+                margin:       1,
+                filename:     `Report_${currentCompanyCode}_${new Date().getTime()}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            // लोडिंग मेसेज
+            alert("PDF तयार होत आहे, कृपया ५ सेकंद वाट पहा...");
+            html2pdf().set(opt).from(element).save();
         }
 
         window.onload = function() {
             const activeWorker = localStorage.getItem('activeWorker');
             const activeOfficer = localStorage.getItem('activeOfficer');
             const activeCompany = localStorage.getItem('activeCompany');
+            currentOfficerRole = localStorage.getItem('officerRole');
             
             if (activeWorker && activeCompany) { 
-                currentWorkerName = activeWorker; 
-                currentCompanyCode = activeCompany;
+                currentWorkerName = activeWorker; currentCompanyCode = activeCompany;
                 showDashboard('worker', activeWorker, activeCompany); 
             }
             else if (activeOfficer && activeCompany) { 
