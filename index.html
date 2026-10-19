@@ -3,28 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>कंट्रॅक्टर ॲप</title>
+    <title>D G N Digital Assistant</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f0f2f5; color: #333; }
         .screen { padding: 20px; max-width: 500px; margin: auto; }
-        .portal-btn { padding: 20px; margin: 10px 0; border-radius: 10px; color: white; text-align: center; font-size: 18px; font-weight: bold; cursor: pointer; border: none; width: 100%; }
-        .worker-btn { background-color: #28a745; }
-        .officer-btn { background-color: #007bff; }
+        
+        /* 3D कलरफुल बटणे */
+        button.action-btn, .portal-btn { 
+            width: 100%; padding: 15px; border: none; border-radius: 10px; 
+            font-size: 16px; font-weight: bold; cursor: pointer; 
+            margin-bottom: 12px; color: white; 
+            box-shadow: 0 5px 0 rgba(0,0,0,0.2); 
+            transition: all 0.1s ease;
+        }
+        button.action-btn:active, .portal-btn:active { 
+            transform: translateY(5px); 
+            box-shadow: 0 0px 0 rgba(0,0,0,0.2); 
+        }
+
+        .worker-btn { background: linear-gradient(135deg, #28a745, #1e7e34); box-shadow: 0 5px 0 #145c24; }
+        .worker-btn:active { box-shadow: 0 0 0 #145c24; }
+        .officer-btn { background: linear-gradient(135deg, #007bff, #0056b3); box-shadow: 0 5px 0 #003d80; }
+        .officer-btn:active { box-shadow: 0 0 0 #003d80; }
+        .btn-in { background: linear-gradient(135deg, #17a2b8, #117a8b); box-shadow: 0 5px 0 #0b525c; }
+        .btn-in:active { box-shadow: 0 0 0 #0b525c; }
+        .btn-out { background: linear-gradient(135deg, #ffc107, #d39e00); color: #333; box-shadow: 0 5px 0 #8e6a00; }
+        .btn-out:active { box-shadow: 0 0 0 #8e6a00; }
+        .pdf-btn { background: linear-gradient(135deg, #e83e8c, #c82333); box-shadow: 0 5px 0 #861824; }
+        .pdf-btn:active { box-shadow: 0 0 0 #861824; }
+        .report-btn { background: linear-gradient(135deg, #6f42c1, #59359a); box-shadow: 0 5px 0 #3b2367; }
+        .report-btn:active { box-shadow: 0 0 0 #3b2367; }
+        .overall-btn { background: linear-gradient(135deg, #20c997, #17a2b8); box-shadow: 0 5px 0 #126d7a; }
+        .overall-btn:active { box-shadow: 0 0 0 #126d7a; }
+        .login-action-btn { background: linear-gradient(135deg, #6610f2, #520dc2); box-shadow: 0 5px 0 #360880; }
+        .login-action-btn:active { box-shadow: 0 0 0 #360880; }
+        .wa-btn { background: linear-gradient(135deg, #25D366, #128C7E); box-shadow: 0 5px 0 #0e6b60; }
+        .wa-btn:active { box-shadow: 0 0 0 #0e6b60; }
+
+        /* नवीन ब्रँडिंग हेडर */
+        .app-header { text-align: center; margin-bottom: 20px; background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .logo-circle { width: 70px; height: 70px; background: #fff; color: #1e3c72; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; font-size: 24px; font-weight: bold; margin-bottom: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); border: 4px solid #ffd700; }
+        .app-header h1 { margin: 0; font-size: 20px; letter-spacing: 1px; text-transform: uppercase; }
+        .app-header h2 { margin: 5px 0 0 0; font-size: 14px; color: #ffd700; letter-spacing: 3px; }
+
         .login-box { display: none; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-top: 20px; }
         input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button.action-btn { width: 100%; padding: 15px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; background-color: #007bff; color: white; font-weight: bold; margin-bottom: 10px;}
+        
         header { display: flex; justify-content: space-between; align-items: center; background: #007bff; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
         header h2 { margin: 0; font-size: 16px; }
         .logout-btn { width: auto; padding: 8px 12px; background: #dc3545; color: white; border: none; border-radius: 5px; font-size: 14px; }
-        .view { display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
         
+        .view { display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
         .worker-card { background: #f9f9f9; border-left: 4px solid #007bff; padding: 10px; margin-bottom: 10px; border-radius: 4px; }
         .history-box { background: #e8f5e9; border: 1px solid #28a745; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center; }
         .info-badge { background: #e3f2fd; padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; margin-bottom: 15px; color: #0056b3; }
-        .btn-in { background-color: #007bff !important; }
-        .btn-out { background-color: #ff9800 !important; }
+        
         .success-msg { background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; }
         .wait-msg { background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; margin-top: 10px;}
         .company-tag { background: #333; color: white; padding: 3px 8px; border-radius: 5px; font-size: 12px; }
@@ -36,8 +71,6 @@
         .point-workers-list { padding: 10px; background: #fdfdfd; display: none; border-top: 1px solid #ccc; }
 
         .report-section { border: 2px dashed #007bff; padding: 15px; border-radius: 10px; margin-top: 20px; background: #f8f9fa; }
-        .pdf-btn { background: #e91e63; }
-        .wa-btn { background: #25D366; }
         
         .pdf-container { position: absolute; left: -9999px; top: 0; width: 800px; background: white; padding: 40px; font-family: sans-serif; color: #000; }
         .pdf-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -47,9 +80,15 @@
 </head>
 <body>
 
+    <!-- लॉगिन स्क्रीन -->
     <div id="portalScreen" class="screen">
-        <h2 style="text-align:center;">🏗️ कंट्रॅक्टर ॲप</h2>
-        <p style="text-align:center;">तुम्ही कोण आहात?</p>
+        <div class="app-header">
+            <div class="logo-circle">DGN</div>
+            <h1>D G N Digital Assistant</h1>
+            <h2>ATTENDANCE</h2>
+        </div>
+        
+        <p style="text-align:center; font-weight:bold;">तुम्ही कोण आहात?</p>
         
         <button class="portal-btn worker-btn" onclick="showLogin('worker')">👷 कामगार (Worker)</button>
         <button class="portal-btn officer-btn" onclick="showLogin('officer')">👔 अधिकारी / मालक</button>
@@ -59,7 +98,7 @@
             <input type="text" id="wLoginCompany" placeholder="कंपनी कोड (उदा. BUILD-01)">
             <input type="text" id="wLoginName" placeholder="तुमचे पूर्ण नाव">
             <input type="tel" id="wLoginMobile" placeholder="मोबाईल नंबर">
-            <button class="action-btn" onclick="loginWorker()">पुढे जा</button>
+            <button class="action-btn login-action-btn" onclick="loginWorker()">पुढे जा</button>
         </div>
 
         <div id="officerLogin" class="login-box">
@@ -73,14 +112,16 @@
             <input type="text" id="officerName" placeholder="तुमचे नाव">
             <input type="password" id="officerPin" placeholder="गुप्त पिन">
             
+            <!-- सुपरवायझरसाठी WhatsApp नंबर -->
             <div id="supervisorWaBox" style="display:none;">
                 <input type="tel" id="officerWa" placeholder="WhatsApp नंबर (उदा. 9822759913)">
             </div>
             
-            <button class="action-btn" onclick="loginOfficer()">लॉगिन करा</button>
+            <button class="action-btn login-action-btn" onclick="loginOfficer()">लॉगिन करा</button>
         </div>
     </div>
 
+    <!-- मुख्य ॲप स्क्रीन -->
     <div id="appScreen" class="screen" style="display: none;">
         <header>
             <div>
@@ -90,7 +131,14 @@
             <button class="logout-btn" onclick="logout()">बाहेर पडा</button>
         </header>
 
+        <!-- कामगार पॅनल -->
         <div id="workerView" class="view">
+            <div class="app-header" style="padding: 10px; margin-bottom: 15px;">
+                <div class="logo-circle" style="width:50px; height:50px; font-size:18px; border-width:3px;">DGN</div>
+                <h1 style="font-size:16px;">D G N Digital Assistant</h1>
+                <h2 style="font-size:12px;">ATTENDANCE</h2>
+            </div>
+
             <div class="history-box">
                 <h3 style="margin:0;">तुमची एकूण हजेरी</h3>
                 <h1 id="workerTotalDays" style="color:#28a745; margin:5px 0;">0 दिवस</h1>
@@ -99,7 +147,7 @@
             <div id="pointSetup" style="display:none;">
                 <h3>तुमच्या कामाच्या ठिकाणाचे नाव टाका</h3>
                 <input type="text" id="wPoint" placeholder="उदा. साइट A">
-                <button class="action-btn" onclick="saveWorkerPoint()">पॉईंट सेव्ह करा</button>
+                <button class="action-btn login-action-btn" onclick="saveWorkerPoint()">पॉईंट सेव्ह करा</button>
             </div>
 
             <div id="attendanceAction" style="display:none;">
@@ -126,10 +174,10 @@
                 <div id="statusMsg" style="color: green; text-align: center; display: none; margin-top:10px; font-weight:bold;"></div>
             </div>
 
-            <!-- ⭐️ कामगारासाठी PDF आणि WhatsApp सेक्शन -->
+            <!-- ⭐️ फक्त कामगारासाठी PDF आणि WhatsApp बटण -->
             <div class="report-section" style="margin-top:20px; border-color:#28a745;">
                 <h3>📄 माझा हजेरी अहवाल</h3>
-                <button class="action-btn" style="background:#009688;" onclick="generateWorkerOwnPDF()">📥 माझी हजेरी PDF डाउनलोड करा</button>
+                <button class="action-btn overall-btn" onclick="generateWorkerOwnPDF()">📥 माझी हजेरी PDF डाउनलोड करा</button>
                 <button class="action-btn wa-btn" onclick="sendWorkerPDFToSupervisor()">🟢 सुपरवायझरला WhatsApp करा</button>
             </div>
             
@@ -137,17 +185,25 @@
             <div id="workerHistoryList"></div>
         </div>
 
+        <!-- अधिकारी पॅनल -->
         <div id="officerView" class="view">
+            <div class="app-header" style="padding: 10px; margin-bottom: 15px;">
+                <div class="logo-circle" style="width:50px; height:50px; font-size:18px; border-width:3px;">DGN</div>
+                <h1 style="font-size:16px;">D G N Digital Assistant</h1>
+                <h2 style="font-size:12px;">ATTENDANCE</h2>
+            </div>
+
             <h3>📊 आजची हजेरी (पॉईंटनुसार)</h3>
             <p style="font-size:14px; color:#555;">कामगारांची नावे पाहण्यासाठी पॉईंटवर क्लिक करा.</p>
             
             <div id="pointWiseAttendanceList"></div>
             
+            <!-- ⭐️ मालक, फिल्ड ऑफिसर व सुपरवायझरसाठी फक्त PDF बटणे (WhatsApp नाही) -->
             <div id="reportSection" class="report-section">
-                <h3>📑 PDF रिपोर्ट्स आणि WhatsApp</h3>
+                <h3>📑 PDF रिपोर्ट्स</h3>
                 
-                <button class="action-btn" style="background:#3f51b5;" onclick="generatePointWisePDF()">1️⃣ पॉईंटनुसार हजेरी पत्रक</button>
-                <button class="action-btn" style="background:#009688;" onclick="generateOverallPDF()">2️⃣ एकूण कामगार दिवसांचा अहवाल</button>
+                <button class="action-btn report-btn" onclick="generatePointWisePDF()">1️⃣ पॉईंटनुसार हजेरी पत्रक</button>
+                <button class="action-btn overall-btn" onclick="generateOverallPDF()">2️⃣ एकूण कामगार दिवसांचा अहवाल</button>
                 
                 <hr style="margin: 15px 0; border-top: 1px solid #ccc;">
                 <h4>3️⃣ बँक पगार पत्रक (Salary Slip)</h4>
@@ -156,10 +212,6 @@
                 </select>
                 <input type="number" id="dailyWageInput" placeholder="रोजंदारी (उदा. 500)" value="500">
                 <button class="action-btn pdf-btn" onclick="generateBankSlipPDF()">📥 पगार पत्रक डाउनलोड करा</button>
-
-                <hr style="margin: 15px 0; border-top: 1px solid #ccc;">
-                <h4>4️⃣ सुपरवायझरला WhatsApp वर पाठवा</h4>
-                <button class="action-btn wa-btn" onclick="sendToSupervisorWhatsApp()">🟢 PDF डाउनलोड करा आणि WhatsApp उघडा</button>
             </div>
         </div>
     </div>
@@ -492,7 +544,6 @@
             return ot.toFixed(2);
         }
 
-        // ⭐️ कामगाराची स्वतःची PDF तयार करणे
         function generateWorkerOwnPDF() {
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let myRecords = records.filter(rec => rec.company === currentCompanyCode && rec.name === currentWorkerName);
@@ -522,7 +573,6 @@
             html2pdf().set({ margin: 0.5, filename: `MyReport_${currentWorkerName}.pdf`, image: {type:'jpeg', quality:0.98}, html2canvas: {scale:2}, jsPDF: {unit:'in', format:'letter', orientation:'portrait'} }).from(document.getElementById('pdfWorkerReport')).save();
         }
 
-        // ⭐️ कामगाराने सुपरवायझरला WhatsApp करणे
         function sendWorkerPDFToSupervisor() {
             let supervisorWa = localStorage.getItem('supervisorWa_' + currentCompanyCode);
             
@@ -531,7 +581,6 @@
                 return;
             }
 
-            // आधी PDF डाउनलोड करा
             generateWorkerOwnPDF();
 
             setTimeout(() => {
@@ -542,7 +591,6 @@
             }, 3000);
         }
 
-        // अधिकाऱ्यांची PDFs (आधीसारखीच)
         function generatePointWisePDF() {
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
@@ -622,18 +670,6 @@
             document.getElementById('bsTotal').innerText = totalAmount;
 
             html2pdf().set({ margin: 0.5, filename: `SalarySlip_${selectedWorker}.pdf`, image: {type:'jpeg', quality:0.98}, html2canvas: {scale:2}, jsPDF: {unit:'in', format:'letter', orientation:'portrait'} }).from(document.getElementById('pdfBankSlip')).save();
-        }
-
-        function sendToSupervisorWhatsApp() {
-            let supervisorWa = localStorage.getItem('supervisorWa_' + currentCompanyCode);
-            if (!supervisorWa) { alert("❌ सुपरवायझरचा WhatsApp नंबर सेव्ह झालेला नाही."); return; }
-            
-            generatePointWisePDF();
-            setTimeout(() => {
-                alert("PDF डाउनलोड झाली आहे. आता WhatsApp उघडत आहे. कृपया ती डाउनलोड केलेली PDF फाईल अटॅच करा.");
-                let message = encodeURIComponent(`नमस्कार, कंपनी ${currentCompanyCode} चा हजेरी अहवाल (PDF) सोबत पाठवत आहे.`);
-                window.open(`https://wa.me/91${supervisorWa}?text=${message}`, '_blank');
-            }, 3000);
         }
     </script>
 </body>
