@@ -31,7 +31,6 @@
         .report-section { border: 2px dashed #007bff; padding: 15px; border-radius: 10px; margin-top: 20px; background: #f8f9fa; }
         .pdf-btn { background: #e91e63; }
         
-        /* PDF साठी स्टाईल */
         .pdf-container { position: absolute; left: -9999px; top: 0; width: 800px; background: white; padding: 40px; font-family: sans-serif; color: #000; }
         .pdf-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         .pdf-table th, .pdf-table td { border: 1px solid #333; padding: 10px; text-align: left; }
@@ -103,7 +102,8 @@
 
                 <div id="btnOutContainer" style="display:none;">
                     <h3>संध्याकाळची हजेरी (OUT)</h3>
-                    <p style="color:green;">तुम्ही सकाळी हजर आहात.</p>
+                    <!-- ⭐️ हा मेसेज आता वेळेनुसार बदलेल -->
+                    <p id="presentStatusText" style="color:green; font-weight:bold;">तुम्ही आज हजर आहात.</p>
                     <button class="action-btn btn-out" style="padding: 20px;" onclick="takeAttendance('OUT')">📸 फोटो काढून 'OUT' लावा</button>
                     <div id="waitMsg" class="wait-msg" style="display:none;"></div>
                 </div>
@@ -122,7 +122,6 @@
             <h3>📊 आजची हजेरी</h3>
             <div id="attendanceList"></div>
             
-            <!-- ⭐️ नवीन रिपोर्ट सेक्शन -->
             <div class="report-section">
                 <h3>📑 PDF रिपोर्ट्स डाउनलोड करा</h3>
                 
@@ -140,14 +139,12 @@
         </div>
     </div>
 
-    <!-- ⭐️ 1. पॉईंटनुसार हजेरी पत्रक (PDF) -->
     <div id="pdfPointWise" class="pdf-container">
         <h2 style="text-align:center;">हजेरी पत्रक (पॉईंटनुसार)</h2>
         <p style="text-align:center;">कंपनी: <span id="pwCompany"></span> | दिनांक: <span id="pwDate"></span></p>
         <div id="pwContent"></div>
     </div>
 
-    <!-- ⭐️ 2. एकूण कामगार दिवसांचा अहवाल (PDF) -->
     <div id="pdfOverall" class="pdf-container">
         <h2 style="text-align:center;">एकूण कामगार दिवसांचा अहवाल</h2>
         <p style="text-align:center;">कंपनी: <span id="ovCompany"></span> | दिनांक: <span id="ovDate"></span></p>
@@ -165,7 +162,6 @@
         </table>
     </div>
 
-    <!-- ⭐️ 3. बँक पगार पत्रक (PDF) -->
     <div id="pdfBankSlip" class="pdf-container">
         <h2 style="text-align:center;">पगार पत्रक (Salary Slip)</h2>
         <div style="display:flex; justify-content:space-between; margin-top:20px;">
@@ -205,7 +201,6 @@
         let currentCompanyCode = "";
         const MIN_WORK_DURATION_MS = 60 * 1000; 
 
-        // ॲप सुरु झाल्यावर कामगारांची यादी भरा
         window.onload = function() {
             const activeWorker = localStorage.getItem('activeWorker');
             const activeOfficer = localStorage.getItem('activeOfficer');
@@ -221,7 +216,6 @@
             }
         };
 
-        // उर्वरित लॉगिन फंक्शन्स (आधीसारखेच)
         function showLogin(type) {
             document.getElementById('workerLogin').style.display = 'none';
             document.getElementById('officerLogin').style.display = 'none';
@@ -284,10 +278,11 @@
             } else {
                 document.getElementById('officerView').style.display = 'block';
                 loadOfficerAttendance();
-                populateWorkerDropdown(); // बँक पगारासाठी यादी
+                populateWorkerDropdown(); 
             }
         }
 
+        // ⭐️ इथे वेळेनुसार 'सकाळी/दुपारी/संध्याकाळी' बदलण्याचा लॉजिक टाकले आहे
         function checkWorkerStatus() {
             const today = new Date().toLocaleDateString('mr-IN');
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
@@ -302,6 +297,18 @@
                 document.getElementById('btnInContainer').style.display = 'block';
             } else if (todayRecord && !todayRecord.outTime) {
                 document.getElementById('btnOutContainer').style.display = 'block';
+                
+                // ⭐️ वेळ तपासणी
+                let inDate = new Date(todayRecord.inTimestamp);
+                let hours = inDate.getHours();
+                let timeStr = "आज";
+                if(hours < 12) timeStr = "सकाळी";
+                else if(hours >= 12 && hours < 16) timeStr = "दुपारी";
+                else if(hours >= 16 && hours < 20) timeStr = "संध्याकाळी";
+                else timeStr = "रात्री";
+
+                document.getElementById('presentStatusText').innerText = `तुम्ही ${timeStr} हजर आहात.`;
+
                 let timePassed = Date.now() - todayRecord.inTimestamp;
                 if (timePassed < MIN_WORK_DURATION_MS) {
                     let remaining = MIN_WORK_DURATION_MS - timePassed;
@@ -382,24 +389,15 @@
             });
         }
 
-        // अधिकाऱ्यांसाठी ड्रॉपडाऊनमध्ये कामगारांची यादी भरणे
         function populateWorkerDropdown() {
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
             let uniqueWorkers = [...new Set(companyRecords.map(rec => rec.name))];
-            
             const select = document.getElementById('selectWorkerForSlip');
             select.innerHTML = '<option value="">-- कामगार निवडा --</option>';
-            uniqueWorkers.forEach(w => {
-                select.innerHTML += `<option value="${w}">${w}</option>`;
-            });
+            uniqueWorkers.forEach(w => { select.innerHTML += `<option value="${w}">${w}</option>`; });
         }
 
-        // *****************************************
-        // ⭐️ PDF रिपोर्ट जनरेटर फंक्शन्स
-        // *****************************************
-
-        // ओव्हरटाईम मोजण्याचे फंक्शन
         function calculateOT(inTs, outTs) {
             if (!inTs || !outTs) return 0;
             let hours = (outTs - inTs) / (1000 * 60 * 60);
@@ -407,7 +405,6 @@
             return ot.toFixed(2);
         }
 
-        // 1️⃣ पॉईंटनुसार हजेरी पत्रक
         function generatePointWisePDF() {
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
@@ -415,16 +412,13 @@
 
             document.getElementById('pwCompany').innerText = currentCompanyCode;
             document.getElementById('pwDate').innerText = new Date().toLocaleDateString('mr-IN');
-            
             const contentDiv = document.getElementById('pwContent');
             contentDiv.innerHTML = '';
 
-            // पॉईंटनुसार ग्रुपिंग
             let points = [...new Set(companyRecords.map(rec => rec.point))];
 
             points.forEach(point => {
                 let pointRecords = companyRecords.filter(rec => rec.point === point);
-                // प्रत्येक कामगाराचे एकत्रित दिवस आणि ओव्हरटाईम
                 let workerStats = {};
                 pointRecords.forEach(rec => {
                     if(!workerStats[rec.name]) workerStats[rec.name] = { days: 0, ot: 0 };
@@ -449,7 +443,6 @@
             html2pdf().set({ margin: 0.5, filename: `PointWise_${currentCompanyCode}.pdf`, image: {type:'jpeg', quality:0.98}, html2canvas: {scale:2}, jsPDF: {unit:'in', format:'letter', orientation:'portrait'} }).from(document.getElementById('pdfPointWise')).save();
         }
 
-        // 2️⃣ एकूण दिवसांचा अहवाल
         function generateOverallPDF() {
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
@@ -475,7 +468,6 @@
             html2pdf().set({ margin: 0.5, filename: `Overall_${currentCompanyCode}.pdf`, image: {type:'jpeg', quality:0.98}, html2canvas: {scale:2}, jsPDF: {unit:'in', format:'letter', orientation:'portrait'} }).from(document.getElementById('pdfOverall')).save();
         }
 
-        // 3️⃣ बँक पगार पत्रक
         function generateBankSlipPDF() {
             let selectedWorker = document.getElementById('selectWorkerForSlip').value;
             let dailyWage = document.getElementById('dailyWageInput').value;
@@ -488,8 +480,8 @@
             
             if (workerRecords.length === 0) { alert("या कामगाराची हजेरी नाही."); return; }
 
-            let totalDays = workerRecords.length; // एकूण दिवस
-            let latestPoint = workerRecords[workerRecords.length-1].point; // शेवटचा पॉईंट
+            let totalDays = workerRecords.length; 
+            let latestPoint = workerRecords[workerRecords.length-1].point; 
             let totalAmount = totalDays * dailyWage;
 
             document.getElementById('bsCompany').innerText = currentCompanyCode;
