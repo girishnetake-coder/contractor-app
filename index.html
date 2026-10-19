@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>D G N Digital Assistant</title>
+    <title>DGN Digital Assistant</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
@@ -41,11 +41,18 @@
         .login-action-btn:active { box-shadow: 0 0 0 #360880; }
         .wa-btn { background: linear-gradient(135deg, #25D366, #128C7E); box-shadow: 0 5px 0 #0e6b60; }
         .wa-btn:active { box-shadow: 0 0 0 #0e6b60; }
+        
+        /* रिसेट बटण (सुरुवातीला लपलेले असेल) */
+        .reset-btn { background: #6c757d; font-size: 12px; padding: 8px; margin-top: 20px; box-shadow: 0 3px 0 #4e555b; display: none; }
+        .reset-btn:active { box-shadow: 0 0 0 #4e555b; }
 
         /* नवीन ब्रँडिंग हेडर */
         .app-header { text-align: center; margin-bottom: 20px; background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .logo-circle { width: 70px; height: 70px; background: #fff; color: #1e3c72; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; font-size: 24px; font-weight: bold; margin-bottom: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); border: 4px solid #ffd700; }
-        .app-header h1 { margin: 0; font-size: 20px; letter-spacing: 1px; text-transform: uppercase; }
+        
+        /* लोगोवर क्लिक करण्यासाठी */
+        .logo-circle { width: 70px; height: 70px; background: #fff; color: #1e3c72; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; font-size: 24px; font-weight: bold; margin-bottom: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); border: 4px solid #ffd700; cursor: pointer; }
+        
+        .app-header h1 { margin: 0; font-size: 18px; letter-spacing: 1px; text-transform: uppercase; }
         .app-header h2 { margin: 5px 0 0 0; font-size: 14px; color: #ffd700; letter-spacing: 3px; }
 
         .login-box { display: none; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-top: 20px; }
@@ -83,15 +90,16 @@
     <!-- लॉगिन स्क्रीन -->
     <div id="portalScreen" class="screen">
         <div class="app-header">
-            <div class="logo-circle">DGN</div>
-            <h1>D G N Digital Assistant</h1>
+            <!-- ⭐️ हा लोगो ३ वेळा दाबल्यास रिसेट बटन दिसेल -->
+            <div class="logo-circle" onclick="handleLogoClick()">DGN</div>
+            <h1>DIGITAL ASSISTANT</h1>
             <h2>ATTENDANCE</h2>
         </div>
         
         <p style="text-align:center; font-weight:bold;">तुम्ही कोण आहात?</p>
         
-        <button class="portal-btn worker-btn" onclick="showLogin('worker')">👷 कामगार (Worker)</button>
-        <button class="portal-btn officer-btn" onclick="showLogin('officer')">👔 अधिकारी / मालक</button>
+        <button id="btnPortalWorker" class="portal-btn worker-btn" onclick="showLogin('worker')">👷 कामगार (Worker)</button>
+        <button id="btnPortalOfficer" class="portal-btn officer-btn" onclick="showLogin('officer')">👔 अधिकारी / मालक</button>
 
         <div id="workerLogin" class="login-box">
             <h3>कामगार लॉगिन</h3>
@@ -104,21 +112,25 @@
         <div id="officerLogin" class="login-box">
             <h3>अधिकारी लॉगिन</h3>
             <input type="text" id="officerCompany" placeholder="कंपनी कोड (उदा. BUILD-01)">
+            
             <select id="officerRole" onchange="toggleSupervisorWa()">
                 <option value="owner">मालक (Owner)</option>
                 <option value="field_officer">फिल्ड ऑफिसर</option>
                 <option value="supervisor">सुपरवायझर</option>
             </select>
+            
             <input type="text" id="officerName" placeholder="तुमचे नाव">
             <input type="password" id="officerPin" placeholder="गुप्त पिन">
             
-            <!-- सुपरवायझरसाठी WhatsApp नंबर -->
             <div id="supervisorWaBox" style="display:none;">
                 <input type="tel" id="officerWa" placeholder="WhatsApp नंबर (उदा. 9822759913)">
             </div>
             
             <button class="action-btn login-action-btn" onclick="loginOfficer()">लॉगिन करा</button>
         </div>
+
+        <!-- ⭐️ रिसेट बटन (सुरुवातीला लपलेले) -->
+        <button id="btnResetDevice" class="action-btn reset-btn" onclick="resetDeviceLock()">🔄 ॲप अनलॉक करा (फक्त मालकासाठी)</button>
     </div>
 
     <!-- मुख्य ॲप स्क्रीन -->
@@ -134,8 +146,8 @@
         <!-- कामगार पॅनल -->
         <div id="workerView" class="view">
             <div class="app-header" style="padding: 10px; margin-bottom: 15px;">
-                <div class="logo-circle" style="width:50px; height:50px; font-size:18px; border-width:3px;">DGN</div>
-                <h1 style="font-size:16px;">D G N Digital Assistant</h1>
+                <div class="logo-circle" style="width:50px; height:50px; font-size:18px; border-width:3px; cursor:default;">DGN</div>
+                <h1 style="font-size:16px;">DIGITAL ASSISTANT</h1>
                 <h2 style="font-size:12px;">ATTENDANCE</h2>
             </div>
 
@@ -174,7 +186,6 @@
                 <div id="statusMsg" style="color: green; text-align: center; display: none; margin-top:10px; font-weight:bold;"></div>
             </div>
 
-            <!-- ⭐️ फक्त कामगारासाठी PDF आणि WhatsApp बटण -->
             <div class="report-section" style="margin-top:20px; border-color:#28a745;">
                 <h3>📄 माझा हजेरी अहवाल</h3>
                 <button class="action-btn overall-btn" onclick="generateWorkerOwnPDF()">📥 माझी हजेरी PDF डाउनलोड करा</button>
@@ -188,8 +199,8 @@
         <!-- अधिकारी पॅनल -->
         <div id="officerView" class="view">
             <div class="app-header" style="padding: 10px; margin-bottom: 15px;">
-                <div class="logo-circle" style="width:50px; height:50px; font-size:18px; border-width:3px;">DGN</div>
-                <h1 style="font-size:16px;">D G N Digital Assistant</h1>
+                <div class="logo-circle" style="width:50px; height:50px; font-size:18px; border-width:3px; cursor:default;">DGN</div>
+                <h1 style="font-size:16px;">DIGITAL ASSISTANT</h1>
                 <h2 style="font-size:12px;">ATTENDANCE</h2>
             </div>
 
@@ -198,7 +209,6 @@
             
             <div id="pointWiseAttendanceList"></div>
             
-            <!-- ⭐️ मालक, फिल्ड ऑफिसर व सुपरवायझरसाठी फक्त PDF बटणे (WhatsApp नाही) -->
             <div id="reportSection" class="report-section">
                 <h3>📑 PDF रिपोर्ट्स</h3>
                 
@@ -276,7 +286,52 @@
         let currentOfficerRole = "";
         const MIN_WORK_DURATION_MS = 60 * 1000; 
 
+        // ⭐️ लोगो ३ वेळा क्लिक करण्याचं लॉजिक
+        let logoTapCount = 0;
+        let logoTapTimer;
+
+        function handleLogoClick() {
+            logoTapCount++;
+            clearTimeout(logoTapTimer);
+
+            if (logoTapCount === 3) {
+                // तिसऱ्यांदा क्लिक केल्यावर रिसेट बटन दाखवा
+                const resetBtn = document.getElementById('btnResetDevice');
+                if (resetBtn) {
+                    resetBtn.style.display = 'block';
+                    alert("🔓 ॲप अनलॉक करण्याचं बटन समोर आलं आहे.");
+                }
+                logoTapCount = 0; // काउंटर रिसेट
+            } else {
+                // १ सेकंदात ३ वेळा नाही केलं तर काउंटर रिसेट होईल
+                logoTapTimer = setTimeout(() => {
+                    logoTapCount = 0;
+                }, 1000);
+            }
+        }
+
+        // ⭐️ ॲप लोड झाल्यावर डिव्हाइस लॉक तपासणे
         window.onload = function() {
+            const deviceRoleLock = localStorage.getItem('deviceRoleLock'); 
+
+            if (deviceRoleLock === 'worker') {
+                document.getElementById('btnPortalOfficer').style.display = 'none'; 
+                showLogin('worker');
+            } 
+            else if (deviceRoleLock === 'supervisor' || deviceRoleLock === 'field_officer') {
+                document.getElementById('btnPortalWorker').style.display = 'none'; 
+                showLogin('officer');
+                document.getElementById('officerRole').value = deviceRoleLock;
+                document.getElementById('officerRole').style.display = 'none'; 
+                if (deviceRoleLock === 'supervisor') {
+                    document.getElementById('supervisorWaBox').style.display = 'block';
+                }
+            }
+            else if (deviceRoleLock === 'owner') {
+                document.getElementById('btnPortalWorker').style.display = 'block';
+                document.getElementById('btnPortalOfficer').style.display = 'block';
+            }
+
             const activeWorker = localStorage.getItem('activeWorker');
             const activeOfficer = localStorage.getItem('activeOfficer');
             const activeCompany = localStorage.getItem('activeCompany');
@@ -291,6 +346,19 @@
                 showDashboard('officer', activeOfficer, activeCompany); 
             }
         };
+
+        function resetDeviceLock() {
+            let ownerPin = prompt("फोन अनलॉक करण्यासाठी मालकाचा पिन टाका (उदा. 1111):");
+            if (ownerPin === '1111') {
+                localStorage.removeItem('deviceRoleLock');
+                localStorage.removeItem('activeWorker');
+                localStorage.removeItem('activeOfficer');
+                alert("✅ फोन अनलॉक झाला आहे. आता तुम्ही नवीन रोल निवडू शकता.");
+                location.reload();
+            } else if (ownerPin !== null) {
+                alert("❌ चुकीचा पिन! फोन अनलॉक होऊ शकला नाही.");
+            }
+        }
 
         function toggleSupervisorWa() {
             const role = document.getElementById('officerRole').value;
@@ -313,8 +381,14 @@
             const name = document.getElementById('wLoginName').value.trim();
             const mobile = document.getElementById('wLoginMobile').value.trim();
             if (company === "" || name === "" || mobile === "") { alert("कृपया सर्व माहिती भरा!"); return; }
+            
             currentCompanyCode = company; currentWorkerName = name;
-            localStorage.setItem('activeWorker', name); localStorage.setItem('workerMobile', mobile); localStorage.setItem('activeCompany', company);
+            localStorage.setItem('activeWorker', name); 
+            localStorage.setItem('workerMobile', mobile); 
+            localStorage.setItem('activeCompany', company);
+            
+            localStorage.setItem('deviceRoleLock', 'worker'); 
+            
             showDashboard('worker', name, company);
         }
 
@@ -337,7 +411,12 @@
 
             currentCompanyCode = company;
             currentOfficerRole = role;
-            localStorage.setItem('activeOfficer', name); localStorage.setItem('officerRole', role); localStorage.setItem('activeCompany', company);
+            localStorage.setItem('activeOfficer', name); 
+            localStorage.setItem('officerRole', role); 
+            localStorage.setItem('activeCompany', company);
+
+            localStorage.setItem('deviceRoleLock', role); 
+
             showDashboard('officer', name, company);
         }
 
@@ -416,8 +495,11 @@
         }
 
         function logout() {
-            localStorage.removeItem('activeWorker'); localStorage.removeItem('workerMobile');
-            localStorage.removeItem('activeOfficer'); localStorage.removeItem('officerRole'); localStorage.removeItem('activeCompany');
+            localStorage.removeItem('activeWorker'); 
+            localStorage.removeItem('workerMobile');
+            localStorage.removeItem('activeOfficer'); 
+            localStorage.removeItem('officerRole'); 
+            localStorage.removeItem('activeCompany');
             location.reload();
         }
 
