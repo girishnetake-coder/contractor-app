@@ -166,12 +166,10 @@
                 </div>
                 
                 <div id="btnInContainer" style="display:none;">
-                    <h3>Morning Attendance (IN)</h3>
                     <button class="action-btn btn-in" style="padding: 20px;" onclick="takeAttendance('IN')">📸 Take Photo & 'IN'</button>
                 </div>
 
                 <div id="btnOutContainer" style="display:none;">
-                    <h3>Evening Attendance (OUT)</h3>
                     <p id="presentStatusText" style="color:green; font-weight:bold;">You are present today.</p>
                     <button class="action-btn btn-out" style="padding: 20px;" onclick="takeAttendance('OUT')">📸 Take Photo & 'OUT'</button>
                     <div id="waitMsg" class="wait-msg" style="display:none;"></div>
@@ -283,6 +281,7 @@
         let currentOfficerRole = "";
         const MIN_WORK_DURATION_MS = 60 * 1000; 
 
+        // ⭐️ लोगो ३ वेळा क्लिक करण्याचं लॉजिक (आधी ५ होतं)
         let logoTapCount = 0;
         let logoTapTimer;
 
@@ -290,11 +289,11 @@
             logoTapCount++;
             clearTimeout(logoTapTimer);
 
-            if (logoTapCount === 5) {
+            if (logoTapCount === 3) {
                 const resetBtn = document.getElementById('btnResetDevice');
                 if (resetBtn) {
                     resetBtn.style.display = 'block';
-                    alert("🔓 Reset button revealed.");
+                    // मेसेज (Alert) पूर्णपणे काढून टाकला आहे
                 }
                 logoTapCount = 0; 
             } else {
@@ -350,8 +349,9 @@
             }
         };
 
+        // ⭐️ रिसेट करण्याचे फंक्शन (पिनचा कोड काढून टाकला आहे)
         function resetDeviceLock() {
-            let ownerPin = prompt("Enter Owner PIN to change company/reset app (e.g. 1111):");
+            let ownerPin = prompt("Enter PIN:"); 
             if (ownerPin === '1111') {
                 localStorage.removeItem('deviceRoleLock');
                 localStorage.removeItem('savedCompanyCode');
@@ -359,7 +359,7 @@
                 localStorage.removeItem('activeOfficer');
                 alert("✅ App reset successfully. You can now enter a new company code.");
                 location.reload();
-            } else if (ownerPin !== null) {
+            } else if (ownerPin !== null && ownerPin !== "") {
                 alert("❌ Incorrect PIN!");
             }
         }
@@ -389,6 +389,7 @@
             localStorage.setItem('savedCompanyCode', company);
 
             currentCompanyCode = company; currentWorkerName = name;
+            
             localStorage.setItem('activeWorker', name); 
             localStorage.setItem('workerMobile', mobile); 
             localStorage.setItem('activeCompany', company);
@@ -419,6 +420,7 @@
 
             currentCompanyCode = company;
             currentOfficerRole = role;
+            
             localStorage.setItem('activeOfficer', name); 
             localStorage.setItem('officerRole', role); 
             localStorage.setItem('activeCompany', company);
@@ -435,7 +437,6 @@
             showDashboard('worker', currentWorkerName, currentCompanyCode);
         }
 
-        // ⭐️ इथे फक्त Welcome आणि नाव (इंग्रजीत) दाखवले आहे
         function showDashboard(type, name, company) {
             document.getElementById('portalScreen').style.display = 'none';
             document.getElementById('appScreen').style.display = 'block';
