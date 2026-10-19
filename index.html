@@ -7,107 +7,142 @@
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f0f2f5; color: #333; }
         .screen { padding: 20px; max-width: 500px; margin: auto; }
-        #loginScreen { text-align: center; margin-top: 40px; background: white; padding: 30px 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .portal-btn { padding: 20px; margin: 10px 0; border-radius: 10px; color: white; text-align: center; font-size: 18px; font-weight: bold; cursor: pointer; border: none; width: 100%; }
+        .worker-btn { background-color: #28a745; }
+        .officer-btn { background-color: #007bff; }
+        .login-box { display: none; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-top: 20px; }
         input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 15px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; background-color: #007bff; color: white; font-weight: bold; }
-        button:hover { background-color: #0056b3; }
+        button.action-btn { width: 100%; padding: 15px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; background-color: #007bff; color: white; font-weight: bold; }
         header { display: flex; justify-content: space-between; align-items: center; background: #007bff; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
         header h2 { margin: 0; font-size: 18px; }
-        .logout-btn { width: auto; padding: 8px 12px; background: #dc3545; font-size: 14px; }
+        .logout-btn { width: auto; padding: 8px 12px; background: #dc3545; color: white; border: none; border-radius: 5px; font-size: 14px; }
         .view { display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .view h3 { margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
-        .action-btn { margin-top: 15px; background: #28a745; }
-        .action-btn:hover { background: #218838; }
-        .report-btn { background: #ff9800; margin-top: 10px; }
-        .worker-card { background: #f9f9f9; border-left: 4px solid #28a745; padding: 10px; margin-bottom: 10px; border-radius: 4px; }
-        #statusMsg { color: green; font-weight: bold; text-align: center; margin-top: 10px; display: none; }
+        .worker-card { background: #f9f9f9; border-left: 4px solid #007bff; padding: 10px; margin-bottom: 10px; border-radius: 4px; }
+        .edit-btn { background: #ff9800; color: white; border: none; padding: 5px 10px; border-radius: 5px; margin-top: 10px; float: right; }
+        .history-box { background: #e8f5e9; border: 1px solid #28a745; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div id="loginScreen" class="screen">
-        <h1>🏗️ कंट्रॅक्टर ॲप</h1>
+    <!-- मुख्य स्क्रीन (पोर्टल निवड) -->
+    <div id="portalScreen" class="screen">
+        <h2 style="text-align:center;">🏗️ कंट्रॅक्टर ॲप</h2>
+        <p style="text-align:center;">तुम्ही कोण आहात?</p>
         
-        <label style="font-weight:bold;">भूमिका निवडा:</label>
-        <select id="userRole" onchange="togglePinField()">
-            <option value="worker">कामगार (Worker)</option>
-            <option value="owner">मालक (Owner)</option>
-            <option value="field_officer">फिल्ड ऑफिसर</option>
-            <option value="supervisor">सुपरवायझर</option>
-        </select>
+        <button class="portal-btn worker-btn" onclick="showLogin('worker')">👷 कामगार (Worker)</button>
+        <button class="portal-btn officer-btn" onclick="showLogin('officer')">👔 अधिकारी (Owner/Supervisor)</button>
 
-        <input type="text" id="userName" placeholder="तुमचे नाव टाका">
-        
-        <div id="pinBox" style="display:none;">
-            <input type="password" id="userPin" placeholder="तुमचा गुप्त पिन (PIN)">
-            <small style="color:gray;">(मालक: 1111, फिल्ड: 2222, सुपर: 3333)</small>
+        <!-- कामगार लॉगिन -->
+        <div id="workerLogin" class="login-box">
+            <h3>कामगार लॉगिन</h3>
+            <input type="text" id="wLoginName" placeholder="तुमचे नाव">
+            <input type="tel" id="wLoginMobile" placeholder="मोबाईल नंबर">
+            <button class="action-btn" onclick="loginWorker()">लॉगिन करा</button>
         </div>
 
-        <button onclick="login()">लॉगिन करा</button>
+        <!-- अधिकारी लॉगिन -->
+        <div id="officerLogin" class="login-box">
+            <h3>अधिकारी लॉगिन</h3>
+            <select id="officerRole">
+                <option value="owner">मालक (Owner)</option>
+                <option value="field_officer">फिल्ड ऑफिसर</option>
+                <option value="supervisor">सुपरवायझर</option>
+            </select>
+            <input type="text" id="officerName" placeholder="तुमचे नाव">
+            <input type="password" id="officerPin" placeholder="गुप्त पिन">
+            <button class="action-btn" onclick="loginOfficer()">लॉगिन करा</button>
+        </div>
     </div>
 
+    <!-- मुख्य ॲप स्क्रीन (लॉगिन झाल्यावर) -->
     <div id="appScreen" class="screen" style="display: none;">
         <header>
             <h2 id="welcomeText">नमस्कार,</h2>
             <button class="logout-btn" onclick="logout()">बाहेर पडा</button>
         </header>
 
-        <div id="officerView" class="view">
-            <h3>📊 डॅशबोर्ड</h3>
-            <p>आज कामावर हजर असलेले कामगार:</p>
-            <div id="attendanceList"></div>
-            <button class="action-btn report-btn" onclick="showReport()">📄 दैनंदिन अहवाल</button>
+        <!-- कामगार स्क्रीन -->
+        <div id="workerView" class="view">
+            <div class="history-box">
+                <h3 style="margin:0;">तुमची एकूण हजेरी</h3>
+                <h1 id="workerTotalDays" style="color:#28a745; margin:5px 0;">0 दिवस</h1>
+            </div>
+
+            <h3>आजची हजेरी लावा</h3>
+            <input type="text" id="wPoint" placeholder="पॉईंटचे नाव (उदा. साइट A)">
+            <button class="action-btn" style="background:#28a745;" onclick="takeAttendance()">📸 हजेरी (फोटो काढा)</button>
+            <div id="statusMsg" style="color: green; text-align: center; display: none; margin-top:10px;">✅ हजेरी यशस्वी झाली!</div>
+            
+            <h4 style="margin-top:20px;">तुमचा इतिहास:</h4>
+            <div id="workerHistoryList"></div>
         </div>
 
-        <div id="workerView" class="view">
-            <h3>👷 कामगार हजेरी</h3>
-            <input type="text" id="wName" placeholder="कामगाराचे नाव">
-            <input type="tel" id="wMobile" placeholder="मोबाईल नंबर">
-            <input type="text" id="wPoint" placeholder="पॉईंटचे नाव (उदा. साइट A)">
-            <button class="action-btn" onclick="takeAttendance()">📸 हजेरी (फोटो काढा)</button>
-            <div id="statusMsg">✅ हजेरी यशस्वी झाली!</div>
+        <!-- अधिकारी स्क्रीन (मालक, फिल्ड ऑफिसर, सुपरवायझर) -->
+        <div id="officerView" class="view">
+            <h3>📊 आजची हजेरी</h3>
+            <p>कामावर हजर असलेले कामगार:</p>
+            <div id="attendanceList"></div>
+            <button class="action-btn" style="background:#ff9800; margin-top:15px;" onclick="showReport()">📄 दैनंदिन अहवाल</button>
         </div>
 
     </div>
 
     <script>
-        function togglePinField() {
-            const role = document.getElementById('userRole').value;
-            if (role === 'worker') {
-                document.getElementById('pinBox').style.display = 'none';
-            } else {
-                document.getElementById('pinBox').style.display = 'block';
-            }
+        let currentWorkerName = "";
+
+        // पोर्टल निवडणे
+        function showLogin(type) {
+            document.getElementById('workerLogin').style.display = 'none';
+            document.getElementById('officerLogin').style.display = 'none';
+            
+            if (type === 'worker') document.getElementById('workerLogin').style.display = 'block';
+            if (type === 'officer') document.getElementById('officerLogin').style.display = 'block';
         }
 
-        function login() {
-            const name = document.getElementById('userName').value;
-            const role = document.getElementById('userRole').value;
-            const pin = document.getElementById('userPin').value;
+        // कामगार लॉगिन
+        function loginWorker() {
+            const name = document.getElementById('wLoginName').value;
+            const mobile = document.getElementById('wLoginMobile').value;
 
-            if (name === "") { alert("कृपया तुमचे नाव टाका!"); return; }
+            if (name === "" || mobile === "") { alert("कृपया नाव आणि मोबाईल टाका!"); return; }
+            
+            currentWorkerName = name;
+            localStorage.setItem('activeWorker', name);
+            showDashboard('worker', name);
+        }
 
+        // अधिकारी लॉगिन
+        function loginOfficer() {
+            const role = document.getElementById('officerRole').value;
+            const name = document.getElementById('officerName').value;
+            const pin = document.getElementById('officerPin').value;
+
+            if (name === "") { alert("कृपया नाव टाका!"); return; }
+            
+            // पिन तपासणी
             if (role === 'owner' && pin !== '1111') { alert("❌ चुकीचा मालक पिन!"); return; }
             if (role === 'field_officer' && pin !== '2222') { alert("❌ चुकीचा फिल्ड ऑफिसर पिन!"); return; }
             if (role === 'supervisor' && pin !== '3333') { alert("❌ चुकीचा सुपरवायझर पिन!"); return; }
 
-            localStorage.setItem('userName', name);
-            localStorage.setItem('userRole', role);
-            showDashboard(name, role);
+            localStorage.setItem('activeOfficer', name);
+            localStorage.setItem('officerRole', role);
+            showDashboard('officer', name);
         }
 
-        function showDashboard(name, role) {
-            document.getElementById('loginScreen').style.display = 'none';
+        // डॅशबोर्ड दाखवणे
+        function showDashboard(type, name) {
+            document.getElementById('portalScreen').style.display = 'none';
             document.getElementById('appScreen').style.display = 'block';
             
             document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
             document.getElementById('welcomeText').innerText = `नमस्कार, ${name}`;
 
-            if (role === 'worker') {
+            if (type === 'worker') {
                 document.getElementById('workerView').style.display = 'block';
+                loadWorkerHistory(name);
             } else {
                 document.getElementById('officerView').style.display = 'block';
-                loadAttendance();
+                loadOfficerAttendance();
             }
         }
 
@@ -116,14 +151,10 @@
             location.reload();
         }
 
+        // कामगार हजेरी काढणे
         function takeAttendance() {
-            const name = document.getElementById('wName').value;
-            const mobile = document.getElementById('wMobile').value;
             const point = document.getElementById('wPoint').value;
-
-            if (name === "" || mobile === "" || point === "") {
-                alert("कृपया सर्व माहिती भरा!"); return;
-            }
+            if (point === "") { alert("कृपया पॉईंटचे नाव टाका!"); return; }
 
             const input = document.createElement('input');
             input.type = 'file';
@@ -134,7 +165,9 @@
                 const file = e.target.files[0];
                 if (file) {
                     const newRecord = {
-                        name: name, mobile: mobile, point: point,
+                        name: currentWorkerName,
+                        mobile: document.getElementById('wLoginMobile').value || "N/A",
+                        point: point,
                         time: new Date().toLocaleTimeString('mr-IN'),
                         date: new Date().toLocaleDateString('mr-IN')
                     };
@@ -144,16 +177,36 @@
                     localStorage.setItem('attendanceData', JSON.stringify(records));
 
                     document.getElementById('statusMsg').style.display = 'block';
-                    document.getElementById('wName').value = '';
-                    document.getElementById('wMobile').value = '';
                     document.getElementById('wPoint').value = '';
                     setTimeout(() => { document.getElementById('statusMsg').style.display = 'none'; }, 3000);
+                    
+                    loadWorkerHistory(currentWorkerName); // इतिहास अपडेट करा
                 }
             };
             input.click();
         }
 
-        function loadAttendance() {
+        // कामगाराचा स्वतःचा इतिहास आणि एकूण दिवस
+        function loadWorkerHistory(workerName) {
+            let allRecords = JSON.parse(localStorage.getItem('attendanceData')) || [];
+            let myRecords = allRecords.filter(rec => rec.name === workerName);
+
+            document.getElementById('workerTotalDays').innerText = `${myRecords.length} दिवस`;
+
+            const listDiv = document.getElementById('workerHistoryList');
+            listDiv.innerHTML = '';
+            myRecords.reverse().forEach(rec => {
+                listDiv.innerHTML += `
+                    <div class="worker-card" style="border-left-color: #28a745;">
+                        <strong>${rec.date}</strong> | वेळ: ${rec.time}<br>
+                        <span>📍 पॉईंट: ${rec.point}</span>
+                    </div>
+                `;
+            });
+        }
+
+        // अधिकाऱ्यांसाठी हजेरी लोड करणे (एडिट पर्यायासह)
+        function loadOfficerAttendance() {
             const listDiv = document.getElementById('attendanceList');
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
 
@@ -162,14 +215,32 @@
             }
 
             listDiv.innerHTML = '';
-            records.reverse().forEach(rec => {
+            records.reverse().forEach((rec, index) => {
+                // मूळ इंडेक्स शोधणे
+                let originalIndex = records.length - 1 - index; 
+                
                 listDiv.innerHTML += `
                     <div class="worker-card">
                         <strong>${rec.name} (${rec.mobile})</strong><br>
-                        <span>📍 पॉईंट: ${rec.point} | ⏰ वेळ: ${rec.time}</span>
+                        <span>📍 पॉईंट: ${rec.point} | ⏰ वेळ: ${rec.time} | 📅 ${rec.date}</span>
+                        <button class="edit-btn" onclick="editRecord(${originalIndex})">✏️ एडिट</button>
+                        <div style="clear:both;"></div>
                     </div>
                 `;
             });
+        }
+
+        // फिल्ड ऑफिसर/मालक एडिट करू शकतो
+        function editRecord(index) {
+            let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
+            let rec = records[index];
+            
+            let newPoint = prompt("पॉईंटचे नाव बदला:", rec.point);
+            if (newPoint !== null) {
+                rec.point = newPoint;
+                localStorage.setItem('attendanceData', JSON.stringify(records));
+                loadOfficerAttendance(); // रिफ्रेश करा
+            }
         }
 
         function showReport() {
@@ -181,10 +252,13 @@
             alert(reportText);
         }
 
+        // पेज लोड झाल्यावर चेक करा
         window.onload = function() {
-            const savedName = localStorage.getItem('userName');
-            const savedRole = localStorage.getItem('userRole');
-            if (savedName && savedRole) { showDashboard(savedName, savedRole); }
+            const activeWorker = localStorage.getItem('activeWorker');
+            const activeOfficer = localStorage.getItem('activeOfficer');
+            
+            if (activeWorker) { currentWorkerName = activeWorker; showDashboard('worker', activeWorker); }
+            else if (activeOfficer) { showDashboard('officer', activeOfficer); }
         };
     </script>
 </body>
