@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>साइट तपासणी ॲप</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>🏗️ साइट तपासणी</h1>
+    </header>
+    <main>
+        <form id="inspectionForm">
+            <label>साइटचे नाव:</label>
+            <input type="text" id="siteName" required placeholder="उदा. प्रोजेक्ट A">
+
+            <label>तपासणीचा प्रकार:</label>
+            <select id="inspectionType">
+                <option value="daily">दैनिक तपासणी</option>
+                <option value="safety">सुरक्षा तपासणी</option>
+                <option value="quality">गुणवत्ता तपासणी</option>
+            </select>
+
+            <label>निरीक्षणे:</label>
+            <textarea id="remarks" rows="3" placeholder="तुमची नोंद येथे लिहा..."></textarea>
+
+            <label>फोटो काढा:</label>
+            <input type="file" id="photo" accept="image/*" capture="environment">
+
+            <button type="submit">नोंद जतन करा</button>
+        </form>
+
+        <h2>जतन केलेल्या नोंदी</h2>
+        <div id="recordsList"></div>
+    </main>
+    <script src="app.js"></script>
+</body>
+</html>
