@@ -42,8 +42,7 @@
         .wa-btn { background: linear-gradient(135deg, #25D366, #128C7E); box-shadow: 0 5px 0 #0e6b60; }
         .wa-btn:active { box-shadow: 0 0 0 #0e6b60; }
         
-        /* रिसेट बटण (सुरुवातीला लपलेले असेल) */
-        .reset-btn { background: #6c757d; font-size: 12px; padding: 8px; margin-top: 20px; box-shadow: 0 3px 0 #4e555b; display: none; }
+        .reset-btn { background: #6c757d; font-size: 14px; padding: 12px; margin-top: 20px; box-shadow: 0 4px 0 #4e555b; display: none; }
         .reset-btn:active { box-shadow: 0 0 0 #4e555b; }
 
         /* नवीन ब्रँडिंग हेडर */
@@ -90,57 +89,55 @@
     <!-- लॉगिन स्क्रीन -->
     <div id="portalScreen" class="screen">
         <div class="app-header">
-            <!-- ⭐️ हा लोगो ३ वेळा दाबल्यास रिसेट बटन दिसेल -->
             <div class="logo-circle" onclick="handleLogoClick()">DGN</div>
             <h1>DIGITAL ASSISTANT</h1>
             <h2>ATTENDANCE</h2>
         </div>
         
-        <p style="text-align:center; font-weight:bold;">तुम्ही कोण आहात?</p>
+        <p style="text-align:center; font-weight:bold;">Who are you?</p>
         
-        <button id="btnPortalWorker" class="portal-btn worker-btn" onclick="showLogin('worker')">👷 कामगार (Worker)</button>
-        <button id="btnPortalOfficer" class="portal-btn officer-btn" onclick="showLogin('officer')">👔 अधिकारी / मालक</button>
+        <button id="btnPortalWorker" class="portal-btn worker-btn" onclick="showLogin('worker')">👷 Worker</button>
+        <button id="btnPortalOfficer" class="portal-btn officer-btn" onclick="showLogin('officer')">👔 Officer / Owner</button>
 
         <div id="workerLogin" class="login-box">
-            <h3>कामगार लॉगिन</h3>
-            <input type="text" id="wLoginCompany" placeholder="कंपनी कोड (उदा. BUILD-01)">
-            <input type="text" id="wLoginName" placeholder="तुमचे पूर्ण नाव">
-            <input type="tel" id="wLoginMobile" placeholder="मोबाईल नंबर">
-            <button class="action-btn login-action-btn" onclick="loginWorker()">पुढे जा</button>
+            <h3>Worker Login</h3>
+            <input type="text" id="wLoginCompany" placeholder="Company Code (e.g. BUILD-01)">
+            <input type="text" id="wLoginName" placeholder="Your Full Name">
+            <input type="tel" id="wLoginMobile" placeholder="Mobile Number">
+            <button class="action-btn login-action-btn" onclick="loginWorker()">Login</button>
         </div>
 
         <div id="officerLogin" class="login-box">
-            <h3>अधिकारी लॉगिन</h3>
-            <input type="text" id="officerCompany" placeholder="कंपनी कोड (उदा. BUILD-01)">
+            <h3>Officer Login</h3>
+            <input type="text" id="officerCompany" placeholder="Company Code (e.g. BUILD-01)">
             
             <select id="officerRole" onchange="toggleSupervisorWa()">
-                <option value="owner">मालक (Owner)</option>
-                <option value="field_officer">फिल्ड ऑफिसर</option>
-                <option value="supervisor">सुपरवायझर</option>
+                <option value="owner">Owner</option>
+                <option value="field_officer">Field Officer</option>
+                <option value="supervisor">Supervisor</option>
             </select>
             
-            <input type="text" id="officerName" placeholder="तुमचे नाव">
-            <input type="password" id="officerPin" placeholder="गुप्त पिन">
+            <input type="text" id="officerName" placeholder="Your Name">
+            <input type="password" id="officerPin" placeholder="Secret PIN">
             
             <div id="supervisorWaBox" style="display:none;">
-                <input type="tel" id="officerWa" placeholder="WhatsApp नंबर (उदा. 9822759913)">
+                <input type="tel" id="officerWa" placeholder="WhatsApp Number (e.g. 9822759913)">
             </div>
             
-            <button class="action-btn login-action-btn" onclick="loginOfficer()">लॉगिन करा</button>
+            <button class="action-btn login-action-btn" onclick="loginOfficer()">Login</button>
         </div>
 
-        <!-- ⭐️ रिसेट बटन (सुरुवातीला लपलेले) -->
-        <button id="btnResetDevice" class="action-btn reset-btn" onclick="resetDeviceLock()">🔄 ॲप अनलॉक करा (फक्त मालकासाठी)</button>
+        <button id="btnResetDevice" class="action-btn reset-btn" onclick="resetDeviceLock()">🔄 Change Company / Reset App</button>
     </div>
 
     <!-- मुख्य ॲप स्क्रीन -->
     <div id="appScreen" class="screen" style="display: none;">
         <header>
             <div>
-                <h2 id="welcomeText">नमस्कार,</h2>
+                <h2 id="welcomeText">Welcome</h2>
                 <span id="companyDisplay" class="company-tag"></span>
             </div>
-            <button class="logout-btn" onclick="logout()">बाहेर पडा</button>
+            <button class="logout-btn" onclick="logout()">Logout</button>
         </header>
 
         <!-- कामगार पॅनल -->
@@ -152,47 +149,47 @@
             </div>
 
             <div class="history-box">
-                <h3 style="margin:0;">तुमची एकूण हजेरी</h3>
-                <h1 id="workerTotalDays" style="color:#28a745; margin:5px 0;">0 दिवस</h1>
+                <h3 style="margin:0;">Total Attendance</h3>
+                <h1 id="workerTotalDays" style="color:#28a745; margin:5px 0;">0 Days</h1>
             </div>
 
             <div id="pointSetup" style="display:none;">
-                <h3>तुमच्या कामाच्या ठिकाणाचे नाव टाका</h3>
-                <input type="text" id="wPoint" placeholder="उदा. साइट A">
-                <button class="action-btn login-action-btn" onclick="saveWorkerPoint()">पॉईंट सेव्ह करा</button>
+                <h3>Enter your work point name</h3>
+                <input type="text" id="wPoint" placeholder="e.g. Site A">
+                <button class="action-btn login-action-btn" onclick="saveWorkerPoint()">Save Point</button>
             </div>
 
             <div id="attendanceAction" style="display:none;">
                 <div class="info-badge">
-                    तुमचे नाव: <span id="displayWorkerName"></span><br>
-                    तुमचा पॉईंट: <span id="displayWorkerPoint"></span>
+                    Name: <span id="displayWorkerName"></span><br>
+                    Point: <span id="displayWorkerPoint"></span>
                 </div>
                 
                 <div id="btnInContainer" style="display:none;">
-                    <h3>सकाळची हजेरी (IN)</h3>
-                    <button class="action-btn btn-in" style="padding: 20px;" onclick="takeAttendance('IN')">📸 फोटो काढून 'IN' लावा</button>
+                    <h3>Morning Attendance (IN)</h3>
+                    <button class="action-btn btn-in" style="padding: 20px;" onclick="takeAttendance('IN')">📸 Take Photo & 'IN'</button>
                 </div>
 
                 <div id="btnOutContainer" style="display:none;">
-                    <h3>संध्याकाळची हजेरी (OUT)</h3>
-                    <p id="presentStatusText" style="color:green; font-weight:bold;">तुम्ही आज हजर आहात.</p>
-                    <button class="action-btn btn-out" style="padding: 20px;" onclick="takeAttendance('OUT')">📸 फोटो काढून 'OUT' लावा</button>
+                    <h3>Evening Attendance (OUT)</h3>
+                    <p id="presentStatusText" style="color:green; font-weight:bold;">You are present today.</p>
+                    <button class="action-btn btn-out" style="padding: 20px;" onclick="takeAttendance('OUT')">📸 Take Photo & 'OUT'</button>
                     <div id="waitMsg" class="wait-msg" style="display:none;"></div>
                 </div>
 
                 <div id="workCompletedMsg" class="success-msg" style="display:none;">
-                    ✅ तुमचं आजचं काम पूर्ण झालं आहे!
+                    ✅ Your work for today is completed!
                 </div>
                 <div id="statusMsg" style="color: green; text-align: center; display: none; margin-top:10px; font-weight:bold;"></div>
             </div>
 
             <div class="report-section" style="margin-top:20px; border-color:#28a745;">
-                <h3>📄 माझा हजेरी अहवाल</h3>
-                <button class="action-btn overall-btn" onclick="generateWorkerOwnPDF()">📥 माझी हजेरी PDF डाउनलोड करा</button>
-                <button class="action-btn wa-btn" onclick="sendWorkerPDFToSupervisor()">🟢 सुपरवायझरला WhatsApp करा</button>
+                <h3>📄 My Attendance Report</h3>
+                <button class="action-btn overall-btn" onclick="generateWorkerOwnPDF()">📥 Download My PDF</button>
+                <button class="action-btn wa-btn" onclick="sendWorkerPDFToSupervisor()">🟢 Send to Supervisor on WhatsApp</button>
             </div>
             
-            <h4 style="margin-top:20px;">तुमचा इतिहास:</h4>
+            <h4 style="margin-top:20px;">Your History:</h4>
             <div id="workerHistoryList"></div>
         </div>
 
@@ -204,79 +201,79 @@
                 <h2 style="font-size:12px;">ATTENDANCE</h2>
             </div>
 
-            <h3>📊 आजची हजेरी (पॉईंटनुसार)</h3>
-            <p style="font-size:14px; color:#555;">कामगारांची नावे पाहण्यासाठी पॉईंटवर क्लिक करा.</p>
+            <h3>📊 Today's Attendance (Point-wise)</h3>
+            <p style="font-size:14px; color:#555;">Click on a point to view workers.</p>
             
             <div id="pointWiseAttendanceList"></div>
             
             <div id="reportSection" class="report-section">
-                <h3>📑 PDF रिपोर्ट्स</h3>
+                <h3>📑 PDF Reports</h3>
                 
-                <button class="action-btn report-btn" onclick="generatePointWisePDF()">1️⃣ पॉईंटनुसार हजेरी पत्रक</button>
-                <button class="action-btn overall-btn" onclick="generateOverallPDF()">2️⃣ एकूण कामगार दिवसांचा अहवाल</button>
+                <button class="action-btn report-btn" onclick="generatePointWisePDF()">1️⃣ Point-wise Attendance</button>
+                <button class="action-btn overall-btn" onclick="generateOverallPDF()">2️⃣ Overall Workers Report</button>
                 
                 <hr style="margin: 15px 0; border-top: 1px solid #ccc;">
-                <h4>3️⃣ बँक पगार पत्रक (Salary Slip)</h4>
+                <h4>3️⃣ Bank Salary Slip</h4>
                 <select id="selectWorkerForSlip">
-                    <option value="">-- कामगार निवडा --</option>
+                    <option value="">-- Select Worker --</option>
                 </select>
-                <input type="number" id="dailyWageInput" placeholder="रोजंदारी (उदा. 500)" value="500">
-                <button class="action-btn pdf-btn" onclick="generateBankSlipPDF()">📥 पगार पत्रक डाउनलोड करा</button>
+                <input type="number" id="dailyWageInput" placeholder="Daily Wage (e.g. 500)" value="500">
+                <button class="action-btn pdf-btn" onclick="generateBankSlipPDF()">📥 Download Salary Slip</button>
             </div>
         </div>
     </div>
 
     <!-- PDF सेक्शन्स -->
     <div id="pdfWorkerReport" class="pdf-container">
-        <h2 style="text-align:center;">माझा हजेरी अहवाल</h2>
-        <p style="text-align:center;">कंपनी: <span id="wrCompany"></span> | दिनांक: <span id="wrDate"></span></p>
+        <h2 style="text-align:center;">My Attendance Report</h2>
+        <p style="text-align:center;">Company: <span id="wrCompany"></span> | Date: <span id="wrDate"></span></p>
         <hr>
-        <p><strong>कामगाराचे नाव:</strong> <span id="wrName"></span></p>
-        <p><strong>मोबाईल:</strong> <span id="wrMobile"></span></p>
-        <p><strong>एकूण दिवस:</strong> <span id="wrTotalDays"></span></p>
+        <p><strong>Worker Name:</strong> <span id="wrName"></span></p>
+        <p><strong>Mobile:</strong> <span id="wrMobile"></span></p>
+        <p><strong>Total Days:</strong> <span id="wrTotalDays"></span></p>
         <table class="pdf-table">
-            <thead><tr><th>अ.क्र.</th><th>दिनांक</th><th>IN वेळ</th><th>OUT वेळ</th><th>पॉईंट</th></tr></thead>
+            <thead><tr><th>Sr.No.</th><th>Date</th><th>IN Time</th><th>OUT Time</th><th>Point</th></tr></thead>
             <tbody id="wrTableBody"></tbody>
         </table>
     </div>
 
     <div id="pdfPointWise" class="pdf-container">
-        <h2 style="text-align:center;">हजेरी पत्रक (पॉईंटनुसार)</h2>
-        <p style="text-align:center;">कंपनी: <span id="pwCompany"></span> | दिनांक: <span id="pwDate"></span></p>
+        <h2 style="text-align:center;">Point-wise Attendance Report</h2>
+        <p style="text-align:center;">Company: <span id="pwCompany"></span> | Date: <span id="pwDate"></span></p>
         <div id="pwContent"></div>
     </div>
 
     <div id="pdfOverall" class="pdf-container">
-        <h2 style="text-align:center;">एकूण कामगार दिवसांचा अहवाल</h2>
-        <p style="text-align:center;">कंपनी: <span id="ovCompany"></span> | दिनांक: <span id="ovDate"></span></p>
+        <h2 style="text-align:center;">Overall Workers Report</h2>
+        <p style="text-align:center;">Company: <span id="ovCompany"></span> | Date: <span id="ovDate"></span></p>
         <table class="pdf-table">
-            <thead><tr><th>अ.क्र.</th><th>कामगाराचे नाव</th><th>मोबाईल</th><th>एकूण दिवस</th><th>ओव्हरटाईम (तास)</th></tr></thead>
+            <thead><tr><th>Sr.No.</th><th>Worker Name</th><th>Mobile</th><th>Total Days</th><th>Overtime (Hrs)</th></tr></thead>
             <tbody id="ovTableBody"></tbody>
         </table>
     </div>
 
     <div id="pdfBankSlip" class="pdf-container">
-        <h2 style="text-align:center;">पगार पत्रक (Salary Slip)</h2>
+        <h2 style="text-align:center;">Salary Slip</h2>
         <div style="display:flex; justify-content:space-between; margin-top:20px;">
-            <div><strong>कंपनी:</strong> <span id="bsCompany"></span></div>
-            <div><strong>दिनांक:</strong> <span id="bsDate"></span></div>
+            <div><strong>Company:</strong> <span id="bsCompany"></span></div>
+            <div><strong>Date:</strong> <span id="bsDate"></span></div>
         </div>
         <hr>
         <div style="margin-top:20px; font-size:18px;">
-            <p><strong>कामगाराचे नाव:</strong> <span id="bsName"></span></p>
-            <p><strong>मोबाईल:</strong> <span id="bsMobile"></span></p>
-            <p><strong>पॉईंट:</strong> <span id="bsPoint"></span></p>
+            <p><strong>Worker Name:</strong> <span id="bsName"></span></p>
+            <p><strong>Mobile:</strong> <span id="bsMobile"></span></p>
+            <p><strong>Point:</strong> <span id="bsPoint"></span></p>
             <br>
             <table class="pdf-table">
-                <tr><th>एकूण कामाचे दिवस</th><td id="bsDays"></td></tr>
-                <tr><th>रोजंदारी (₹)</th><td id="bsWage"></td></tr>
-                <tr style="background:#e8f5e9; font-size:20px;"><th>एकूण पगार (₹)</th><td id="bsTotal" style="font-weight:bold;"></td></tr>
+                <tr><th>Total Working Days</th><td id="bsDays"></td></tr>
+                <tr><th>Daily Wage (₹)</th><td id="bsWage"></td></tr>
+                <tr style="background:#e8f5e9; font-size:20px;"><th>Total Salary (₹)</th><td id="bsTotal" style="font-weight:bold;"></td></tr>
             </table>
         </div>
         <br><br><br>
         <div style="display:flex; justify-content:space-between; margin-top:50px;">
-            <p>_______________________<br>कामगाराची सही</p>
-            <p>_______________________<br>अधिकाऱ्याची सही</p>
+            <p>_______________________<br>Worker Signature</p>
+            <p>_______________________<br>Officer Signature</p>
         </div>
     </div>
 
@@ -286,7 +283,6 @@
         let currentOfficerRole = "";
         const MIN_WORK_DURATION_MS = 60 * 1000; 
 
-        // ⭐️ लोगो ३ वेळा क्लिक करण्याचं लॉजिक
         let logoTapCount = 0;
         let logoTapTimer;
 
@@ -294,25 +290,32 @@
             logoTapCount++;
             clearTimeout(logoTapTimer);
 
-            if (logoTapCount === 3) {
-                // तिसऱ्यांदा क्लिक केल्यावर रिसेट बटन दाखवा
+            if (logoTapCount === 5) {
                 const resetBtn = document.getElementById('btnResetDevice');
                 if (resetBtn) {
                     resetBtn.style.display = 'block';
-                    alert("🔓 ॲप अनलॉक करण्याचं बटन समोर आलं आहे.");
+                    alert("🔓 Reset button revealed.");
                 }
-                logoTapCount = 0; // काउंटर रिसेट
+                logoTapCount = 0; 
             } else {
-                // १ सेकंदात ३ वेळा नाही केलं तर काउंटर रिसेट होईल
                 logoTapTimer = setTimeout(() => {
                     logoTapCount = 0;
-                }, 1000);
+                }, 1500); 
             }
         }
 
-        // ⭐️ ॲप लोड झाल्यावर डिव्हाइस लॉक तपासणे
         window.onload = function() {
             const deviceRoleLock = localStorage.getItem('deviceRoleLock'); 
+            const savedCompany = localStorage.getItem('savedCompanyCode');
+
+            if (savedCompany) {
+                document.getElementById('wLoginCompany').value = savedCompany;
+                document.getElementById('officerCompany').value = savedCompany;
+                document.getElementById('wLoginCompany').readOnly = true;
+                document.getElementById('officerCompany').readOnly = true;
+                document.getElementById('wLoginCompany').style.backgroundColor = '#e9ecef';
+                document.getElementById('officerCompany').style.backgroundColor = '#e9ecef';
+            }
 
             if (deviceRoleLock === 'worker') {
                 document.getElementById('btnPortalOfficer').style.display = 'none'; 
@@ -348,15 +351,16 @@
         };
 
         function resetDeviceLock() {
-            let ownerPin = prompt("फोन अनलॉक करण्यासाठी मालकाचा पिन टाका (उदा. 1111):");
+            let ownerPin = prompt("Enter Owner PIN to change company/reset app (e.g. 1111):");
             if (ownerPin === '1111') {
                 localStorage.removeItem('deviceRoleLock');
+                localStorage.removeItem('savedCompanyCode');
                 localStorage.removeItem('activeWorker');
                 localStorage.removeItem('activeOfficer');
-                alert("✅ फोन अनलॉक झाला आहे. आता तुम्ही नवीन रोल निवडू शकता.");
+                alert("✅ App reset successfully. You can now enter a new company code.");
                 location.reload();
             } else if (ownerPin !== null) {
-                alert("❌ चुकीचा पिन! फोन अनलॉक होऊ शकला नाही.");
+                alert("❌ Incorrect PIN!");
             }
         }
 
@@ -377,11 +381,13 @@
         }
 
         function loginWorker() {
-            const company = document.getElementById('wLoginCompany').value.toUpperCase().trim();
+            let company = document.getElementById('wLoginCompany').value.toUpperCase().trim();
             const name = document.getElementById('wLoginName').value.trim();
             const mobile = document.getElementById('wLoginMobile').value.trim();
-            if (company === "" || name === "" || mobile === "") { alert("कृपया सर्व माहिती भरा!"); return; }
+            if (company === "" || name === "" || mobile === "") { alert("Please fill all details!"); return; }
             
+            localStorage.setItem('savedCompanyCode', company);
+
             currentCompanyCode = company; currentWorkerName = name;
             localStorage.setItem('activeWorker', name); 
             localStorage.setItem('workerMobile', mobile); 
@@ -393,21 +399,23 @@
         }
 
         function loginOfficer() {
-            const company = document.getElementById('officerCompany').value.toUpperCase().trim();
+            let company = document.getElementById('officerCompany').value.toUpperCase().trim();
             const role = document.getElementById('officerRole').value;
             const name = document.getElementById('officerName').value.trim();
             const pin = document.getElementById('officerPin').value;
             const wa = document.getElementById('officerWa').value.trim();
 
-            if (company === "" || name === "") { alert("कृपया कंपनी कोड आणि नाव टाका!"); return; }
-            if (role === 'owner' && pin !== '1111') { alert("❌ चुकीचा मालक पिन!"); return; }
-            if (role === 'field_officer' && pin !== '2222') { alert("❌ चुकीचा फिल्ड ऑफिसर पिन!"); return; }
-            if (role === 'supervisor' && pin !== '3333') { alert("❌ चुकीचा सुपरवायझर पिन!"); return; }
+            if (company === "" || name === "") { alert("Please enter Company Code and Name!"); return; }
+            if (role === 'owner' && pin !== '1111') { alert("❌ Incorrect Owner PIN!"); return; }
+            if (role === 'field_officer' && pin !== '2222') { alert("❌ Incorrect Field Officer PIN!"); return; }
+            if (role === 'supervisor' && pin !== '3333') { alert("❌ Incorrect Supervisor PIN!"); return; }
             
             if (role === 'supervisor') {
-                if (wa === "") { alert("कृपया तुमचा WhatsApp नंबर टाका!"); return; }
+                if (wa === "") { alert("Please enter WhatsApp Number!"); return; }
                 localStorage.setItem('supervisorWa_' + company, wa);
             }
+
+            localStorage.setItem('savedCompanyCode', company);
 
             currentCompanyCode = company;
             currentOfficerRole = role;
@@ -422,16 +430,18 @@
 
         function saveWorkerPoint() {
             const point = document.getElementById('wPoint').value;
-            if (point === "") { alert("कृपया पॉईंटचे नाव टाका!"); return; }
+            if (point === "") { alert("Please enter point name!"); return; }
             localStorage.setItem('workerPoint_' + currentCompanyCode, point);
             showDashboard('worker', currentWorkerName, currentCompanyCode);
         }
 
+        // ⭐️ इथे फक्त Welcome आणि नाव (इंग्रजीत) दाखवले आहे
         function showDashboard(type, name, company) {
             document.getElementById('portalScreen').style.display = 'none';
             document.getElementById('appScreen').style.display = 'block';
             document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
-            document.getElementById('welcomeText').innerText = `नमस्कार, ${name}`;
+            
+            document.getElementById('welcomeText').innerText = `Welcome ${name}`;
             document.getElementById('companyDisplay').innerText = `Company: ${company}`;
 
             if (type === 'worker') {
@@ -461,7 +471,7 @@
         }
 
         function checkWorkerStatus() {
-            const today = new Date().toLocaleDateString('mr-IN');
+            const today = new Date().toLocaleDateString('en-GB');
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let todayRecord = records.find(r => r.company === currentCompanyCode && r.name === currentWorkerName && r.date === today);
 
@@ -476,17 +486,17 @@
                 document.getElementById('btnOutContainer').style.display = 'block';
                 let inDate = new Date(todayRecord.inTimestamp);
                 let hours = inDate.getHours();
-                let timeStr = "आज";
-                if(hours < 12) timeStr = "सकाळी";
-                else if(hours >= 12 && hours < 16) timeStr = "दुपारी";
-                else if(hours >= 16 && hours < 20) timeStr = "संध्याकाळी";
-                else timeStr = "रात्री";
-                document.getElementById('presentStatusText').innerText = `तुम्ही ${timeStr} हजर आहात.`;
+                let timeStr = "today";
+                if(hours < 12) timeStr = "in the morning";
+                else if(hours >= 12 && hours < 16) timeStr = "in the afternoon";
+                else if(hours >= 16 && hours < 20) timeStr = "in the evening";
+                else timeStr = "at night";
+                document.getElementById('presentStatusText').innerText = `You are present ${timeStr}.`;
 
                 let timePassed = Date.now() - todayRecord.inTimestamp;
                 if (timePassed < MIN_WORK_DURATION_MS) {
                     let remaining = MIN_WORK_DURATION_MS - timePassed;
-                    document.getElementById('waitMsg').innerText = `⏳ कृपया अजून ${Math.ceil(remaining/(1000*60))} मिनिटं थांबा.`;
+                    document.getElementById('waitMsg').innerText = `⏳ Please wait for ${Math.ceil(remaining/(1000*60))} more minutes.`;
                     document.getElementById('waitMsg').style.display = 'block';
                 }
             } else {
@@ -506,12 +516,12 @@
         function takeAttendance(type) {
             const point = localStorage.getItem('workerPoint_' + currentCompanyCode);
             const mobile = localStorage.getItem('workerMobile');
-            const today = new Date().toLocaleDateString('mr-IN');
+            const today = new Date().toLocaleDateString('en-GB');
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let todayRecord = records.find(r => r.company === currentCompanyCode && r.name === currentWorkerName && r.date === today);
 
             if (type === 'OUT' && (!todayRecord || (Date.now() - todayRecord.inTimestamp) < MIN_WORK_DURATION_MS)) {
-                alert("तुम्ही अजून पुरेसा वेळ काम केले नाही!"); return;
+                alert("You haven't worked enough time yet!"); return;
             }
 
             const input = document.createElement('input');
@@ -519,7 +529,7 @@
             
             input.onchange = (e) => {
                 if (e.target.files[0]) {
-                    const currentTime = new Date().toLocaleTimeString('mr-IN');
+                    const currentTime = new Date().toLocaleTimeString('en-GB');
                     let todayRecordIndex = records.findIndex(r => r.company === currentCompanyCode && r.name === currentWorkerName && r.date === today);
 
                     if (type === 'IN') {
@@ -530,7 +540,7 @@
                     }
 
                     localStorage.setItem('attendanceData', JSON.stringify(records));
-                    alert(`✅ तुमची ${type} हजेरी सेव्ह झाली आहे!`); 
+                    alert(`✅ Your ${type} attendance saved successfully!`); 
                     checkWorkerStatus(); loadWorkerHistory(currentWorkerName, currentCompanyCode);
                 }
             };
@@ -540,25 +550,25 @@
         function loadWorkerHistory(workerName, company) {
             let allRecords = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let myRecords = allRecords.filter(rec => rec.company === company && rec.name === workerName);
-            document.getElementById('workerTotalDays').innerText = `${myRecords.length} दिवस`;
+            document.getElementById('workerTotalDays').innerText = `${myRecords.length} Days`;
             const listDiv = document.getElementById('workerHistoryList');
             listDiv.innerHTML = '';
             myRecords.reverse().forEach(rec => {
                 let timeStr = `IN: ${rec.inTime}`;
                 if (rec.outTime) timeStr += ` | OUT: ${rec.outTime}`;
-                listDiv.innerHTML += `<div class="worker-card" style="border-left-color: #28a745;"><strong>${rec.date}</strong> | ${timeStr}<br><span>📍 पॉईंट: ${rec.point}</span></div>`;
+                listDiv.innerHTML += `<div class="worker-card" style="border-left-color: #28a745;"><strong>${rec.date}</strong> | ${timeStr}<br><span>📍 Point: ${rec.point}</span></div>`;
             });
         }
 
         function loadOfficerAttendance() {
             const listDiv = document.getElementById('pointWiseAttendanceList');
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
-            let today = new Date().toLocaleDateString('mr-IN');
+            let today = new Date().toLocaleDateString('en-GB');
             
             let companyRecords = records.filter(rec => rec.company === currentCompanyCode && rec.date === today);
             
             if (companyRecords.length === 0) { 
-                listDiv.innerHTML = '<p>आज अजून कोणीही हजेरी लावलेली नाही.</p>'; 
+                listDiv.innerHTML = '<p>No attendance recorded today.</p>'; 
                 return; 
             }
 
@@ -579,7 +589,7 @@
                     <div class="point-group">
                         <button class="point-btn" onclick="togglePointWorkers(${pointIndex})">
                             <span>📍 ${point}</span>
-                            <span class="worker-count-badge">${count} कामगार</span>
+                            <span class="worker-count-badge">${count} Workers</span>
                         </button>
                         <div id="point-workers-${pointIndex}" class="point-workers-list">
                 `;
@@ -615,7 +625,7 @@
             let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
             let uniqueWorkers = [...new Set(companyRecords.map(rec => rec.name))];
             const select = document.getElementById('selectWorkerForSlip');
-            select.innerHTML = '<option value="">-- कामगार निवडा --</option>';
+            select.innerHTML = '<option value="">-- Select Worker --</option>';
             uniqueWorkers.forEach(w => { select.innerHTML += `<option value="${w}">${w}</option>`; });
         }
 
@@ -630,10 +640,10 @@
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let myRecords = records.filter(rec => rec.company === currentCompanyCode && rec.name === currentWorkerName);
             
-            if (myRecords.length === 0) { alert("तुमची अजून हजेरी नाही."); return; }
+            if (myRecords.length === 0) { alert("No attendance found."); return; }
 
             document.getElementById('wrCompany').innerText = currentCompanyCode;
-            document.getElementById('wrDate').innerText = new Date().toLocaleDateString('mr-IN');
+            document.getElementById('wrDate').innerText = new Date().toLocaleDateString('en-GB');
             document.getElementById('wrName').innerText = currentWorkerName;
             document.getElementById('wrMobile').innerText = localStorage.getItem('workerMobile') || 'N/A';
             document.getElementById('wrTotalDays').innerText = myRecords.length;
@@ -659,27 +669,27 @@
             let supervisorWa = localStorage.getItem('supervisorWa_' + currentCompanyCode);
             
             if (!supervisorWa) {
-                alert("❌ सुपरवायझरचा WhatsApp नंबर सेव्ह झालेला नाही. कृपया प्रथम सुपरवायझरला ॲपमध्ये लॉगिन करून नंबर सेव्ह करायला सांगा.");
+                alert("❌ Supervisor WhatsApp number not saved. Please ask supervisor to login first.");
                 return;
             }
 
             generateWorkerOwnPDF();
 
             setTimeout(() => {
-                alert("तुमची PDF डाउनलोड झाली आहे. आता WhatsApp उघडत आहे. कृपया ती डाउनलोड केलेली PDF फाईल अटॅच करा.");
-                let message = encodeURIComponent(`नमस्कार सर, मी ${currentWorkerName}. माझा हजेरी अहवाल (PDF) सोबत पाठवत आहे.`);
-                let waLink = `https://wa.me/91${supervisorWa}?text=${message}`;
-                window.open(waLink, '_blank');
+                alert("Your PDF is downloaded. Opening WhatsApp now. Please attach the downloaded PDF.");
+                let message = encodeURIComponent(`Hello Sir, I am ${currentWorkerName}. Sending my attendance report (PDF).`);
+                let waLink = `whatsapp://send?phone=91${supervisorWa}&text=${message}`;
+                window.location.href = waLink;
             }, 3000);
         }
 
         function generatePointWisePDF() {
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
-            if (companyRecords.length === 0) { alert("डेटा नाही."); return; }
+            if (companyRecords.length === 0) { alert("No data."); return; }
 
             document.getElementById('pwCompany').innerText = currentCompanyCode;
-            document.getElementById('pwDate').innerText = new Date().toLocaleDateString('mr-IN');
+            document.getElementById('pwDate').innerText = new Date().toLocaleDateString('en-GB');
             const contentDiv = document.getElementById('pwContent');
             contentDiv.innerHTML = '';
 
@@ -693,7 +703,7 @@
                     workerStats[rec.name].ot += parseFloat(calculateOT(rec.inTimestamp, rec.outTimestamp));
                 });
 
-                let tableHTML = `<h3 style="margin-top: 20px; background:#eee; padding:5px;">📍 पॉईंट: ${point}</h3><table class="pdf-table"><thead><tr><th>अ.क्र.</th><th>कामगाराचे नाव</th><th>एकूण दिवस</th><th>ओव्हरटाईम</th></tr></thead><tbody>`;
+                let tableHTML = `<h3 style="margin-top: 20px; background:#eee; padding:5px;">📍 Point: ${point}</h3><table class="pdf-table"><thead><tr><th>Sr.No.</th><th>Worker Name</th><th>Total Days</th><th>Overtime</th></tr></thead><tbody>`;
                 let i = 1;
                 for(let name in workerStats) {
                     tableHTML += `<tr><td>${i++}</td><td>${name}</td><td>${workerStats[name].days}</td><td>${workerStats[name].ot}</td></tr>`;
@@ -707,10 +717,10 @@
         function generateOverallPDF() {
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
-            if (companyRecords.length === 0) { alert("डेटा नाही."); return; }
+            if (companyRecords.length === 0) { alert("No data."); return; }
 
             document.getElementById('ovCompany').innerText = currentCompanyCode;
-            document.getElementById('ovDate').innerText = new Date().toLocaleDateString('mr-IN');
+            document.getElementById('ovDate').innerText = new Date().toLocaleDateString('en-GB');
             let workerStats = {};
             companyRecords.forEach(rec => {
                 if(!workerStats[rec.name]) workerStats[rec.name] = { mobile: rec.mobile, days: 0, ot: 0 };
@@ -731,19 +741,19 @@
             let selectedWorker = document.getElementById('selectWorkerForSlip').value;
             let dailyWage = document.getElementById('dailyWageInput').value;
 
-            if (!selectedWorker) { alert("कृपया कामगार निवडा!"); return; }
-            if (!dailyWage || dailyWage <= 0) { alert("कृपया योग्य रोजंदारी टाका!"); return; }
+            if (!selectedWorker) { alert("Please select a worker!"); return; }
+            if (!dailyWage || dailyWage <= 0) { alert("Please enter valid daily wage!"); return; }
 
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let workerRecords = records.filter(rec => rec.company === currentCompanyCode && rec.name === selectedWorker);
-            if (workerRecords.length === 0) { alert("या कामगाराची हजेरी नाही."); return; }
+            if (workerRecords.length === 0) { alert("No attendance for this worker."); return; }
 
             let totalDays = workerRecords.length; 
             let latestPoint = workerRecords[workerRecords.length-1].point; 
             let totalAmount = totalDays * dailyWage;
 
             document.getElementById('bsCompany').innerText = currentCompanyCode;
-            document.getElementById('bsDate').innerText = new Date().toLocaleDateString('mr-IN');
+            document.getElementById('bsDate').innerText = new Date().toLocaleDateString('en-GB');
             document.getElementById('bsName').innerText = selectedWorker;
             document.getElementById('bsMobile').innerText = workerRecords[0].mobile;
             document.getElementById('bsPoint').innerText = latestPoint;
