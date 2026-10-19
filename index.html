@@ -281,10 +281,10 @@
         let currentOfficerRole = "";
         const MIN_WORK_DURATION_MS = 60 * 1000; 
 
-        // ⭐️ लोगो ३ वेळा क्लिक करण्याचं लॉजिक (आधी ५ होतं)
         let logoTapCount = 0;
         let logoTapTimer;
 
+        // ⭐️ लोगो ३ वेळा क्लिक करण्याचं लॉजिक (मेसेज परत आणला आहे)
         function handleLogoClick() {
             logoTapCount++;
             clearTimeout(logoTapTimer);
@@ -293,7 +293,7 @@
                 const resetBtn = document.getElementById('btnResetDevice');
                 if (resetBtn) {
                     resetBtn.style.display = 'block';
-                    // मेसेज (Alert) पूर्णपणे काढून टाकला आहे
+                    alert("🔓 Reset button revealed."); // तुम्हाला बटन दिसण्यासाठी मेसेज परत आणला
                 }
                 logoTapCount = 0; 
             } else {
@@ -349,9 +349,9 @@
             }
         };
 
-        // ⭐️ रिसेट करण्याचे फंक्शन (पिनचा कोड काढून टाकला आहे)
+        // ⭐️ रिसेट करण्याचे फंक्शन (इथे पिनचा कोड (1111) काढून टाकला आहे)
         function resetDeviceLock() {
-            let ownerPin = prompt("Enter PIN:"); 
+            let ownerPin = prompt("Enter PIN:"); // फक्त हेच विचारेल, 1111 दिसणार नाही
             if (ownerPin === '1111') {
                 localStorage.removeItem('deviceRoleLock');
                 localStorage.removeItem('savedCompanyCode');
