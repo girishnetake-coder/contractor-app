@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>कंट्रॅक्टर ॲप</title>
-    <!-- PDF बनवण्यासाठी लायब्ररी -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
@@ -15,7 +14,7 @@
         .officer-btn { background-color: #007bff; }
         .login-box { display: none; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-top: 20px; }
         input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button.action-btn { width: 100%; padding: 15px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; background-color: #007bff; color: white; font-weight: bold; }
+        button.action-btn { width: 100%; padding: 15px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; background-color: #007bff; color: white; font-weight: bold; margin-bottom: 10px;}
         header { display: flex; justify-content: space-between; align-items: center; background: #007bff; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
         header h2 { margin: 0; font-size: 16px; }
         .logout-btn { width: auto; padding: 8px 12px; background: #dc3545; color: white; border: none; border-radius: 5px; font-size: 14px; }
@@ -29,7 +28,14 @@
         .wait-msg { background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; margin-top: 10px;}
         .company-tag { background: #333; color: white; padding: 3px 8px; border-radius: 5px; font-size: 12px; }
         .tracking-box { background: #fff3cd; padding: 10px; border-radius: 5px; margin-bottom: 10px; border: 1px solid #ffeeba; }
-        .pdf-btn { background: #e91e63; margin-top: 15px; }
+        .report-section { border: 2px dashed #007bff; padding: 15px; border-radius: 10px; margin-top: 20px; background: #f8f9fa; }
+        .pdf-btn { background: #e91e63; }
+        
+        /* PDF साठी स्टाईल */
+        .pdf-container { position: absolute; left: -9999px; top: 0; width: 800px; background: white; padding: 40px; font-family: sans-serif; color: #000; }
+        .pdf-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .pdf-table th, .pdf-table td { border: 1px solid #333; padding: 10px; text-align: left; }
+        .pdf-table th { background: #eee; }
     </style>
 </head>
 <body>
@@ -113,51 +119,109 @@
         </div>
 
         <div id="officerView" class="view">
-            <h3>📍 लाईव्ह लोकेशन ट्रॅकिंग</h3>
-            <div id="locationTrackingList"></div>
-
             <h3>📊 आजची हजेरी</h3>
             <div id="attendanceList"></div>
             
-            <button class="action-btn" style="background:#ff9800; margin-top:15px;" onclick="showReport()">📄 दैनंदिन अहवाल</button>
-            <button class="action-btn pdf-btn" onclick="generatePDF()">📥 मासिक अहवाल (PDF) डाउनलोड करा</button>
+            <!-- ⭐️ नवीन रिपोर्ट सेक्शन -->
+            <div class="report-section">
+                <h3>📑 PDF रिपोर्ट्स डाउनलोड करा</h3>
+                
+                <button class="action-btn" style="background:#3f51b5;" onclick="generatePointWisePDF()">1️⃣ पॉईंटनुसार हजेरी पत्रक</button>
+                <button class="action-btn" style="background:#009688;" onclick="generateOverallPDF()">2️⃣ एकूण कामगार दिवसांचा अहवाल</button>
+                
+                <hr style="margin: 15px 0; border-top: 1px solid #ccc;">
+                <h4>3️⃣ बँक पगार पत्रक (Salary Slip)</h4>
+                <select id="selectWorkerForSlip">
+                    <option value="">-- कामगार निवडा --</option>
+                </select>
+                <input type="number" id="dailyWageInput" placeholder="रोजंदारी (उदा. 500)" value="500">
+                <button class="action-btn pdf-btn" onclick="generateBankSlipPDF()">📥 पगार पत्रक डाउनलोड करा</button>
+            </div>
         </div>
     </div>
 
-    <!-- PDF साठी लपवलेला भाग -->
-    <div id="pdfContent" style="display:none; padding: 20px; font-family: sans-serif;">
-        <h2 style="text-align:center;">मासिक अहवाल - <span id="pdfCompany"></span></h2>
-        <p style="text-align:center;">दिनांक: <span id="pdfDate"></span></p>
-        <table border="1" style="width:100%; border-collapse: collapse; text-align:left;">
+    <!-- ⭐️ 1. पॉईंटनुसार हजेरी पत्रक (PDF) -->
+    <div id="pdfPointWise" class="pdf-container">
+        <h2 style="text-align:center;">हजेरी पत्रक (पॉईंटनुसार)</h2>
+        <p style="text-align:center;">कंपनी: <span id="pwCompany"></span> | दिनांक: <span id="pwDate"></span></p>
+        <div id="pwContent"></div>
+    </div>
+
+    <!-- ⭐️ 2. एकूण कामगार दिवसांचा अहवाल (PDF) -->
+    <div id="pdfOverall" class="pdf-container">
+        <h2 style="text-align:center;">एकूण कामगार दिवसांचा अहवाल</h2>
+        <p style="text-align:center;">कंपनी: <span id="ovCompany"></span> | दिनांक: <span id="ovDate"></span></p>
+        <table class="pdf-table">
             <thead>
-                <tr style="background:#eee;">
-                    <th style="padding:8px;">कामगाराचे नाव</th>
-                    <th style="padding:8px;">पॉईंट</th>
-                    <th style="padding:8px;">एकूण दिवस</th>
+                <tr>
+                    <th>अ.क्र.</th>
+                    <th>कामगाराचे नाव</th>
+                    <th>मोबाईल</th>
+                    <th>एकूण दिवस</th>
+                    <th>एकूण ओव्हरटाईम (तास)</th>
                 </tr>
             </thead>
-            <tbody id="pdfTableBody"></tbody>
+            <tbody id="ovTableBody"></tbody>
         </table>
+    </div>
+
+    <!-- ⭐️ 3. बँक पगार पत्रक (PDF) -->
+    <div id="pdfBankSlip" class="pdf-container">
+        <h2 style="text-align:center;">पगार पत्रक (Salary Slip)</h2>
+        <div style="display:flex; justify-content:space-between; margin-top:20px;">
+            <div><strong>कंपनी:</strong> <span id="bsCompany"></span></div>
+            <div><strong>दिनांक:</strong> <span id="bsDate"></span></div>
+        </div>
+        <hr>
+        <div style="margin-top:20px; font-size:18px;">
+            <p><strong>कामगाराचे नाव:</strong> <span id="bsName"></span></p>
+            <p><strong>मोबाईल:</strong> <span id="bsMobile"></span></p>
+            <p><strong>पॉईंट:</strong> <span id="bsPoint"></span></p>
+            <br>
+            <table class="pdf-table">
+                <tr>
+                    <th>एकूण कामाचे दिवस</th>
+                    <td id="bsDays"></td>
+                </tr>
+                <tr>
+                    <th>रोजंदारी (₹)</th>
+                    <td id="bsWage"></td>
+                </tr>
+                <tr style="background:#e8f5e9; font-size:20px;">
+                    <th>एकूण पगार (₹)</th>
+                    <td id="bsTotal" style="font-weight:bold;"></td>
+                </tr>
+            </table>
+        </div>
+        <br><br><br>
+        <div style="display:flex; justify-content:space-between; margin-top:50px;">
+            <p>_______________________<br>कामगाराची सही</p>
+            <p>_______________________<br>अधिकाऱ्याची सही</p>
+        </div>
     </div>
 
     <script>
         let currentWorkerName = "";
         let currentCompanyCode = "";
-        let currentOfficerRole = "";
-        const MIN_WORK_DURATION_MS = 60 * 1000; // टेस्टिंगसाठी १ मिनिट
+        const MIN_WORK_DURATION_MS = 60 * 1000; 
 
-        // GPS लोकेशन मिळवणे
-        function getGPSLocation(callback) {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => callback({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-                    (err) => callback(null)
-                );
-            } else {
-                callback(null);
+        // ॲप सुरु झाल्यावर कामगारांची यादी भरा
+        window.onload = function() {
+            const activeWorker = localStorage.getItem('activeWorker');
+            const activeOfficer = localStorage.getItem('activeOfficer');
+            const activeCompany = localStorage.getItem('activeCompany');
+            
+            if (activeWorker && activeCompany) { 
+                currentWorkerName = activeWorker; currentCompanyCode = activeCompany;
+                showDashboard('worker', activeWorker, activeCompany); 
             }
-        }
+            else if (activeOfficer && activeCompany) { 
+                currentCompanyCode = activeCompany;
+                showDashboard('officer', activeOfficer, activeCompany); 
+            }
+        };
 
+        // उर्वरित लॉगिन फंक्शन्स (आधीसारखेच)
         function showLogin(type) {
             document.getElementById('workerLogin').style.display = 'none';
             document.getElementById('officerLogin').style.display = 'none';
@@ -169,14 +233,9 @@
             const company = document.getElementById('wLoginCompany').value.toUpperCase().trim();
             const name = document.getElementById('wLoginName').value.trim();
             const mobile = document.getElementById('wLoginMobile').value.trim();
-            
             if (company === "" || name === "" || mobile === "") { alert("कृपया सर्व माहिती भरा!"); return; }
-            
-            currentCompanyCode = company;
-            currentWorkerName = name;
-            localStorage.setItem('activeWorker', name);
-            localStorage.setItem('workerMobile', mobile);
-            localStorage.setItem('activeCompany', company);
+            currentCompanyCode = company; currentWorkerName = name;
+            localStorage.setItem('activeWorker', name); localStorage.setItem('workerMobile', mobile); localStorage.setItem('activeCompany', company);
             showDashboard('worker', name, company);
         }
 
@@ -185,33 +244,13 @@
             const role = document.getElementById('officerRole').value;
             const name = document.getElementById('officerName').value.trim();
             const pin = document.getElementById('officerPin').value;
-
             if (company === "" || name === "") { alert("कृपया कंपनी कोड आणि नाव टाका!"); return; }
             if (role === 'owner' && pin !== '1111') { alert("❌ चुकीचा मालक पिन!"); return; }
             if (role === 'field_officer' && pin !== '2222') { alert("❌ चुकीचा फिल्ड ऑफिसर पिन!"); return; }
             if (role === 'supervisor' && pin !== '3333') { alert("❌ चुकीचा सुपरवायझर पिन!"); return; }
-
             currentCompanyCode = company;
-            currentOfficerRole = role;
-            localStorage.setItem('activeOfficer', name);
-            localStorage.setItem('officerRole', role);
-            localStorage.setItem('activeCompany', company);
-
-            // अधिकाऱ्याचे लोकेशन सेव्ह करणे (लॉगिन करताच)
-            getGPSLocation((loc) => {
-                if (loc) {
-                    let liveLocations = JSON.parse(localStorage.getItem('liveLocations')) || {};
-                    liveLocations[name] = { 
-                        role: role, 
-                        company: company, 
-                        lat: loc.lat, 
-                        lng: loc.lng, 
-                        time: new Date().toLocaleTimeString('mr-IN') 
-                    };
-                    localStorage.setItem('liveLocations', JSON.stringify(liveLocations));
-                }
-                showDashboard('officer', name, company);
-            });
+            localStorage.setItem('activeOfficer', name); localStorage.setItem('officerRole', role); localStorage.setItem('activeCompany', company);
+            showDashboard('officer', name, company);
         }
 
         function saveWorkerPoint() {
@@ -225,14 +264,12 @@
             document.getElementById('portalScreen').style.display = 'none';
             document.getElementById('appScreen').style.display = 'block';
             document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
-            
             document.getElementById('welcomeText').innerText = `नमस्कार, ${name}`;
             document.getElementById('companyDisplay').innerText = `Company: ${company}`;
 
             if (type === 'worker') {
                 document.getElementById('workerView').style.display = 'block';
                 const savedPoint = localStorage.getItem('workerPoint_' + company);
-                
                 if (!savedPoint) {
                     document.getElementById('pointSetup').style.display = 'block';
                     document.getElementById('attendanceAction').style.display = 'none';
@@ -247,53 +284,8 @@
             } else {
                 document.getElementById('officerView').style.display = 'block';
                 loadOfficerAttendance();
-                loadLocationTracking(name, currentOfficerRole); // लोकेशन लोड करा
+                populateWorkerDropdown(); // बँक पगारासाठी यादी
             }
-        }
-
-        // ⭐️ लोकेशन ट्रॅकिंग (रोलनुसार फिल्टर)
-        function loadLocationTracking(currentOfficerName, role) {
-            const listDiv = document.getElementById('locationTrackingList');
-            let liveLocations = JSON.parse(localStorage.getItem('liveLocations')) || {};
-            let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
-            
-            listDiv.innerHTML = '';
-            let found = false;
-
-            // कामगारांचे लोकेशन (फक्त हजेरीतून)
-            let companyWorkers = records.filter(r => r.company === currentCompanyCode && r.lat && r.lng);
-            
-            // अधिकाऱ्यांचे लोकेशन
-            for (let name in liveLocations) {
-                let loc = liveLocations[name];
-                if (loc.company !== currentCompanyCode) continue; // दुसऱ्या कंपनीचे नाही
-
-                if (role === 'owner') {
-                    found = true;
-                    listDiv.innerHTML += `<div class="tracking-box"><strong>${name}</strong> (${loc.role})<br>📍 <a href="https://maps.google.com/?q=${loc.lat},${loc.lng}" target="_blank">Google Maps वर पहा</a> | ⏰ ${loc.time}</div>`;
-                } else if (role === 'field_officer' && loc.role === 'supervisor') {
-                    found = true;
-                    listDiv.innerHTML += `<div class="tracking-box"><strong>${name}</strong> (सुपरवायझर)<br>📍 <a href="https://maps.google.com/?q=${loc.lat},${loc.lng}" target="_blank">Google Maps वर पहा</a> | ⏰ ${loc.time}</div>`;
-                }
-            }
-
-            // कामगारांचे लोकेशन फक्त मालक, फिल्ड ऑफिसर आणि सुपरवायझरला दिसेल
-            if (role === 'owner' || role === 'field_officer' || role === 'supervisor') {
-                let uniqueWorkers = [];
-                companyWorkers.forEach(w => {
-                    // फक्त आजचे आणि IN असलेले
-                    if (!uniqueWorkers.find(uw => uw.name === w.name)) {
-                        uniqueWorkers.push(w);
-                    }
-                });
-                
-                uniqueWorkers.forEach(w => {
-                    found = true;
-                    listDiv.innerHTML += `<div class="tracking-box" style="border-color:#28a745; background:#e8f5e9;"><strong>${w.name}</strong> (कामगार)<br>📍 पॉईंट: ${w.point} | <a href="https://maps.google.com/?q=${w.lat},${w.lng}" target="_blank">Google Maps वर पहा</a></div>`;
-                });
-            }
-
-            if (!found) listDiv.innerHTML = '<p>कोणतेही लोकेशन उपलब्ध नाही.</p>';
         }
 
         function checkWorkerStatus() {
@@ -322,11 +314,8 @@
         }
 
         function logout() {
-            localStorage.removeItem('activeWorker');
-            localStorage.removeItem('workerMobile');
-            localStorage.removeItem('activeOfficer');
-            localStorage.removeItem('officerRole');
-            localStorage.removeItem('activeCompany');
+            localStorage.removeItem('activeWorker'); localStorage.removeItem('workerMobile');
+            localStorage.removeItem('activeOfficer'); localStorage.removeItem('officerRole'); localStorage.removeItem('activeCompany');
             location.reload();
         }
 
@@ -342,43 +331,26 @@
             }
 
             const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'image/*';
-            input.capture = 'environment';
+            input.type = 'file'; input.accept = 'image/*'; input.capture = 'environment';
             
             input.onchange = (e) => {
                 if (e.target.files[0]) {
-                    // फोटो काढल्यावर लोकेशन घ्या आणि सेव्ह करा (कामगाराला दिसणार नाही)
-                    getGPSLocation((loc) => {
-                        const currentTime = new Date().toLocaleTimeString('mr-IN');
-                        let todayRecordIndex = records.findIndex(r => r.company === currentCompanyCode && r.name === currentWorkerName && r.date === today);
+                    const currentTime = new Date().toLocaleTimeString('mr-IN');
+                    let todayRecordIndex = records.findIndex(r => r.company === currentCompanyCode && r.name === currentWorkerName && r.date === today);
 
-                        if (type === 'IN') {
-                            records.push({
-                                company: currentCompanyCode,
-                                name: currentWorkerName,
-                                mobile: mobile,
-                                point: point,
-                                date: today,
-                                inTime: currentTime,
-                                inTimestamp: Date.now(),
-                                outTime: "",
-                                lat: loc ? loc.lat : null, // लोकेशन सेव्ह
-                                lng: loc ? loc.lng : null
-                            });
-                        } else if (type === 'OUT' && todayRecordIndex !== -1) {
-                            records[todayRecordIndex].outTime = currentTime;
-                            records[todayRecordIndex].outTimestamp = Date.now();
-                            if(loc) { records[todayRecordIndex].lat = loc.lat; records[todayRecordIndex].lng = loc.lng; }
-                        }
+                    if (type === 'IN') {
+                        records.push({ company: currentCompanyCode, name: currentWorkerName, mobile: mobile, point: point, date: today, inTime: currentTime, inTimestamp: Date.now(), outTime: "", outTimestamp: null });
+                    } else if (type === 'OUT' && todayRecordIndex !== -1) {
+                        records[todayRecordIndex].outTime = currentTime;
+                        records[todayRecordIndex].outTimestamp = Date.now();
+                    }
 
-                        localStorage.setItem('attendanceData', JSON.stringify(records));
-                        document.getElementById('statusMsg').innerText = `✅ ${type} यशस्वी झाली!`;
-                        document.getElementById('statusMsg').style.display = 'block';
-                        setTimeout(() => { document.getElementById('statusMsg').style.display = 'none'; }, 3000);
-                        checkWorkerStatus();
-                        loadWorkerHistory(currentWorkerName, currentCompanyCode);
-                    });
+                    localStorage.setItem('attendanceData', JSON.stringify(records));
+                    alert(`✅ तुमची ${type} हजेरी सेव्ह झाली आहे!`); 
+                    document.getElementById('statusMsg').innerText = `✅ ${type} यशस्वी!`;
+                    document.getElementById('statusMsg').style.display = 'block';
+                    setTimeout(() => { document.getElementById('statusMsg').style.display = 'none'; }, 3000);
+                    checkWorkerStatus(); loadWorkerHistory(currentWorkerName, currentCompanyCode);
                 }
             };
             input.click();
@@ -388,7 +360,6 @@
             let allRecords = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let myRecords = allRecords.filter(rec => rec.company === company && rec.name === workerName);
             document.getElementById('workerTotalDays').innerText = `${myRecords.length} दिवस`;
-
             const listDiv = document.getElementById('workerHistoryList');
             listDiv.innerHTML = '';
             myRecords.reverse().forEach(rec => {
@@ -402,96 +373,136 @@
             const listDiv = document.getElementById('attendanceList');
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
-
             if (companyRecords.length === 0) { listDiv.innerHTML = '<p>हजेरी नाही.</p>'; return; }
-
             listDiv.innerHTML = '';
             companyRecords.reverse().forEach((rec) => {
                 let timeStr = `IN: ${rec.inTime || '--'}`;
-                if (rec.outTime) timeStr += ` | OUT: ${rec.outTime}`;
-                else timeStr += ` | OUT: ⏳`;
-
-                listDiv.innerHTML += `
-                    <div class="worker-card">
-                        <strong>${rec.name} (${rec.mobile})</strong><br>
-                        <span>📍 पॉईंट: ${rec.point} | 📅 ${rec.date} | ${timeStr}</span>
-                    </div>
-                `;
+                if (rec.outTime) timeStr += ` | OUT: ${rec.outTime}`; else timeStr += ` | OUT: ⏳`;
+                listDiv.innerHTML += `<div class="worker-card"><strong>${rec.name} (${rec.mobile})</strong><br><span>📍 पॉईंट: ${rec.point} | 📅 ${rec.date} | ${timeStr}</span></div>`;
             });
         }
 
-        function showReport() {
+        // अधिकाऱ्यांसाठी ड्रॉपडाऊनमध्ये कामगारांची यादी भरणे
+        function populateWorkerDropdown() {
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
-            if (companyRecords.length === 0) { alert("हजेरी नाही."); return; }
-            let reportText = `--- दैनंदिन अहवाल (${currentCompanyCode}) ---\n\n`;
-            companyRecords.forEach(rec => { reportText += `${rec.name} - ${rec.point}\n`; });
-            alert(reportText);
+            let uniqueWorkers = [...new Set(companyRecords.map(rec => rec.name))];
+            
+            const select = document.getElementById('selectWorkerForSlip');
+            select.innerHTML = '<option value="">-- कामगार निवडा --</option>';
+            uniqueWorkers.forEach(w => {
+                select.innerHTML += `<option value="${w}">${w}</option>`;
+            });
         }
 
-        // ⭐️ मासिक PDF अहवाल तयार करणे
-        function generatePDF() {
+        // *****************************************
+        // ⭐️ PDF रिपोर्ट जनरेटर फंक्शन्स
+        // *****************************************
+
+        // ओव्हरटाईम मोजण्याचे फंक्शन
+        function calculateOT(inTs, outTs) {
+            if (!inTs || !outTs) return 0;
+            let hours = (outTs - inTs) / (1000 * 60 * 60);
+            let ot = hours > 8 ? (hours - 8) : 0;
+            return ot.toFixed(2);
+        }
+
+        // 1️⃣ पॉईंटनुसार हजेरी पत्रक
+        function generatePointWisePDF() {
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
+            if (companyRecords.length === 0) { alert("डेटा नाही."); return; }
 
-            if (companyRecords.length === 0) { alert("PDF तयार करण्यासाठी डेटा नाही."); return; }
+            document.getElementById('pwCompany').innerText = currentCompanyCode;
+            document.getElementById('pwDate').innerText = new Date().toLocaleDateString('mr-IN');
+            
+            const contentDiv = document.getElementById('pwContent');
+            contentDiv.innerHTML = '';
 
-            // कामगारांचे एकूण दिवस मोजणे
+            // पॉईंटनुसार ग्रुपिंग
+            let points = [...new Set(companyRecords.map(rec => rec.point))];
+
+            points.forEach(point => {
+                let pointRecords = companyRecords.filter(rec => rec.point === point);
+                // प्रत्येक कामगाराचे एकत्रित दिवस आणि ओव्हरटाईम
+                let workerStats = {};
+                pointRecords.forEach(rec => {
+                    if(!workerStats[rec.name]) workerStats[rec.name] = { days: 0, ot: 0 };
+                    workerStats[rec.name].days += 1;
+                    workerStats[rec.name].ot += parseFloat(calculateOT(rec.inTimestamp, rec.outTimestamp));
+                });
+
+                let tableHTML = `
+                    <h3 style="margin-top: 20px; background:#eee; padding:5px;">📍 पॉईंट: ${point}</h3>
+                    <table class="pdf-table">
+                        <thead><tr><th>अ.क्र.</th><th>कामगाराचे नाव</th><th>एकूण दिवस</th><th>ओव्हरटाईम (तास)</th></tr></thead>
+                        <tbody>
+                `;
+                let i = 1;
+                for(let name in workerStats) {
+                    tableHTML += `<tr><td>${i++}</td><td>${name}</td><td>${workerStats[name].days}</td><td>${workerStats[name].ot}</td></tr>`;
+                }
+                tableHTML += `</tbody></table>`;
+                contentDiv.innerHTML += tableHTML;
+            });
+
+            html2pdf().set({ margin: 0.5, filename: `PointWise_${currentCompanyCode}.pdf`, image: {type:'jpeg', quality:0.98}, html2canvas: {scale:2}, jsPDF: {unit:'in', format:'letter', orientation:'portrait'} }).from(document.getElementById('pdfPointWise')).save();
+        }
+
+        // 2️⃣ एकूण दिवसांचा अहवाल
+        function generateOverallPDF() {
+            let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
+            let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
+            if (companyRecords.length === 0) { alert("डेटा नाही."); return; }
+
+            document.getElementById('ovCompany').innerText = currentCompanyCode;
+            document.getElementById('ovDate').innerText = new Date().toLocaleDateString('mr-IN');
+            
             let workerStats = {};
             companyRecords.forEach(rec => {
-                if (!workerStats[rec.name]) {
-                    workerStats[rec.name] = { days: 0, point: rec.point };
-                }
+                if(!workerStats[rec.name]) workerStats[rec.name] = { mobile: rec.mobile, days: 0, ot: 0 };
                 workerStats[rec.name].days += 1;
-                workerStats[rec.name].point = rec.point; // शेवटचा पॉईंट
+                workerStats[rec.name].ot += parseFloat(calculateOT(rec.inTimestamp, rec.outTimestamp));
             });
 
-            // टेबल तयार करणे
-            const tbody = document.getElementById('pdfTableBody');
+            const tbody = document.getElementById('ovTableBody');
             tbody.innerHTML = '';
-            for (let name in workerStats) {
-                tbody.innerHTML += `
-                    <tr>
-                        <td style="padding:8px;">${name}</td>
-                        <td style="padding:8px;">${workerStats[name].point}</td>
-                        <td style="padding:8px; font-weight:bold; color:green;">${workerStats[name].days}</td>
-                    </tr>
-                `;
+            let i = 1;
+            for(let name in workerStats) {
+                tbody.innerHTML += `<tr><td>${i++}</td><td>${name}</td><td>${workerStats[name].mobile}</td><td>${workerStats[name].days}</td><td>${workerStats[name].ot}</td></tr>`;
             }
 
-            document.getElementById('pdfCompany').innerText = currentCompanyCode;
-            document.getElementById('pdfDate').innerText = new Date().toLocaleDateString('mr-IN');
-
-            // PDF डाउनलोड करणे
-            const element = document.getElementById('pdfContent');
-            const opt = {
-                margin:       1,
-                filename:     `Report_${currentCompanyCode}_${new Date().getTime()}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-            };
-
-            // लोडिंग मेसेज
-            alert("PDF तयार होत आहे, कृपया ५ सेकंद वाट पहा...");
-            html2pdf().set(opt).from(element).save();
+            html2pdf().set({ margin: 0.5, filename: `Overall_${currentCompanyCode}.pdf`, image: {type:'jpeg', quality:0.98}, html2canvas: {scale:2}, jsPDF: {unit:'in', format:'letter', orientation:'portrait'} }).from(document.getElementById('pdfOverall')).save();
         }
 
-        window.onload = function() {
-            const activeWorker = localStorage.getItem('activeWorker');
-            const activeOfficer = localStorage.getItem('activeOfficer');
-            const activeCompany = localStorage.getItem('activeCompany');
-            currentOfficerRole = localStorage.getItem('officerRole');
+        // 3️⃣ बँक पगार पत्रक
+        function generateBankSlipPDF() {
+            let selectedWorker = document.getElementById('selectWorkerForSlip').value;
+            let dailyWage = document.getElementById('dailyWageInput').value;
+
+            if (!selectedWorker) { alert("कृपया कामगार निवडा!"); return; }
+            if (!dailyWage || dailyWage <= 0) { alert("कृपया योग्य रोजंदारी टाका!"); return; }
+
+            let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
+            let workerRecords = records.filter(rec => rec.company === currentCompanyCode && rec.name === selectedWorker);
             
-            if (activeWorker && activeCompany) { 
-                currentWorkerName = activeWorker; currentCompanyCode = activeCompany;
-                showDashboard('worker', activeWorker, activeCompany); 
-            }
-            else if (activeOfficer && activeCompany) { 
-                currentCompanyCode = activeCompany;
-                showDashboard('officer', activeOfficer, activeCompany); 
-            }
-        };
+            if (workerRecords.length === 0) { alert("या कामगाराची हजेरी नाही."); return; }
+
+            let totalDays = workerRecords.length; // एकूण दिवस
+            let latestPoint = workerRecords[workerRecords.length-1].point; // शेवटचा पॉईंट
+            let totalAmount = totalDays * dailyWage;
+
+            document.getElementById('bsCompany').innerText = currentCompanyCode;
+            document.getElementById('bsDate').innerText = new Date().toLocaleDateString('mr-IN');
+            document.getElementById('bsName').innerText = selectedWorker;
+            document.getElementById('bsMobile').innerText = workerRecords[0].mobile;
+            document.getElementById('bsPoint').innerText = latestPoint;
+            document.getElementById('bsDays').innerText = totalDays;
+            document.getElementById('bsWage').innerText = dailyWage;
+            document.getElementById('bsTotal').innerText = totalAmount;
+
+            html2pdf().set({ margin: 0.5, filename: `SalarySlip_${selectedWorker}.pdf`, image: {type:'jpeg', quality:0.98}, html2canvas: {scale:2}, jsPDF: {unit:'in', format:'letter', orientation:'portrait'} }).from(document.getElementById('pdfBankSlip')).save();
+        }
     </script>
 </body>
 </html>
