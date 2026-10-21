@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DGN Digital Assistant</title>
-    <!-- PDF आणि Excel साठी लायब्ररी -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
@@ -45,11 +44,12 @@
         .wa-btn:active { box-shadow: 0 0 0 #0e6b60; }
         .bank-btn { background: linear-gradient(135deg, #ff9800, #e68a00); box-shadow: 0 5px 0 #b36b00; }
         .bank-btn:active { box-shadow: 0 0 0 #b36b00; }
+        .manual-btn { background: linear-gradient(135deg, #2196F3, #1976D2); box-shadow: 0 5px 0 #0d47a1; }
+        .manual-btn:active { box-shadow: 0 0 0 #0d47a1; }
         
         .reset-btn { background: #6c757d; font-size: 14px; padding: 12px; margin-top: 20px; box-shadow: 0 4px 0 #4e555b; display: none; }
         .reset-btn:active { box-shadow: 0 0 0 #4e555b; }
 
-        /* ⭐️ पिवळा बॉक्स आणि लाल बॉर्डर */
         .app-header { 
             text-align: center; margin-bottom: 20px; background: #FFD700; color: #000; 
             padding: 20px; border-radius: 15px; border: 4px solid #FF0000; box-shadow: 0 5px 15px rgba(0,0,0,0.3); 
@@ -89,6 +89,7 @@
 
         .report-section { border: 2px dashed #007bff; padding: 15px; border-radius: 10px; margin-top: 20px; background: #f8f9fa; }
         .bank-section { border: 2px solid #ff9800; padding: 15px; border-radius: 10px; margin-top: 20px; background: #fff8e1; }
+        .manual-add-section { border: 2px solid #2196F3; padding: 15px; border-radius: 10px; margin-top: 15px; background: #e3f2fd; }
         
         .pdf-container { position: absolute; left: -9999px; top: 0; width: 800px; background: white; padding: 40px; font-family: sans-serif; color: #000; }
         .pdf-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -193,7 +194,6 @@
 
             <div class="report-section" style="margin-top:20px; border-color:#28a745;">
                 <h3>📄 My Attendance Report</h3>
-                <!-- ⭐️ एकच बटन, पण PDF आणि Excel दोन्ही डाउनलोड होतील -->
                 <button class="action-btn overall-btn" onclick="downloadWorkerReport()">📥 Download My Report (PDF + Excel)</button>
                 <button class="action-btn wa-btn" onclick="sendWorkerPDFToSupervisor()">🟢 Send to Supervisor on WhatsApp</button>
             </div>
@@ -226,14 +226,32 @@
             <div id="reportSection" class="report-section">
                 <h3>📑 PDF & Excel Reports</h3>
                 
-                <!-- ⭐️ एकच बटन, पण PDF आणि Excel दोन्ही डाउनलोड होतील -->
                 <button class="action-btn report-btn" onclick="downloadPointWiseReport()">1️⃣ Point-wise Attendance (PDF + Excel)</button>
                 <button class="action-btn overall-btn" onclick="downloadOverallReport()">2️⃣ Overall Workers Report (PDF + Excel)</button>
                 
                 <hr style="margin: 15px 0; border-top: 1px solid #ccc;">
-                <h4>3️⃣ Bank Payment List</h4>
+                
+                <h4>3️⃣ Bank Payment List (Excel)</h4>
+                <select id="bankListPointSelect">
+                    <option value="all">-- All Points --</option>
+                </select>
+                <input type="number" id="bankListWageInput" placeholder="Default Daily Wage (e.g. 500)" value="500">
+                
                 <button class="action-btn bank-btn" onclick="generateBankExcel()">🏦 Download Bank Payment List</button>
                 <button class="action-btn" style="background:#6c757d; box-shadow: 0 5px 0 #4e555b;" onclick="editBankDetails()">✏️ Edit Bank & Payment Details</button>
+
+                <!-- ⭐️ मॅन्युअली वर्कर ऍड करण्याचा नवीन पर्याय -->
+                <div class="manual-add-section">
+                    <h4 style="margin-top: 0; color: #0d47a1;">➕ Add Worker Manually to Bank List</h4>
+                    <p style="font-size:12px; margin:0 0 10px 0; color:#555;">(जर कामगाराने हजेरी नसताना पण पेमेंट करायचं असेल तर इथे ऍड करा)</p>
+                    <input type="text" id="manName" placeholder="Worker Name (Required)">
+                    <input type="text" id="manBank" placeholder="Bank Name">
+                    <input type="text" id="manAcc" placeholder="Account Number">
+                    <input type="text" id="manIfsc" placeholder="IFSC Code">
+                    <input type="number" id="manAmount" placeholder="Total Amount (₹) (Required)">
+                    <input type="text" id="manPoint" placeholder="Point Name (Optional)">
+                    <button class="action-btn manual-btn" onclick="addManualWorkerToBank()">Add to List</button>
+                </div>
             </div>
         </div>
     </div>
@@ -489,7 +507,22 @@
                 }
                 loadOfficerAttendance();
                 populateWorkerDropdown(); 
+                populateBankPointsDropdown(); 
             }
+        }
+
+        function populateBankPointsDropdown() {
+            let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
+            let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
+            let points = [...new Set(companyRecords.map(rec => rec.point))];
+            
+            let select = document.getElementById('bankListPointSelect');
+            if (!select) return;
+            
+            select.innerHTML = '<option value="all">-- All Points --</option>';
+            points.forEach(p => {
+                select.innerHTML += `<option value="${p}">📍 ${p}</option>`;
+            });
         }
 
         function checkWorkerStatus() {
@@ -660,13 +693,11 @@
             return ot.toFixed(2);
         }
 
-        // ⭐️ 1. कामगार अहवाल (PDF + Excel दोन्ही एकत्र)
         function downloadWorkerReport() {
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let myRecords = records.filter(rec => rec.company === currentCompanyCode && rec.name === currentWorkerName);
             if (myRecords.length === 0) { alert("No attendance found."); return; }
 
-            // PDF तयार करणे
             document.getElementById('wrCompany').innerText = currentCompanyCode;
             document.getElementById('wrDate').innerText = new Date().toLocaleDateString('en-GB');
             document.getElementById('wrName').innerText = currentWorkerName;
@@ -680,7 +711,6 @@
             });
             html2pdf().set({ margin: 0.5, filename: `MyReport_${currentWorkerName}.pdf`, image: {type:'jpeg', quality:0.98}, html2canvas: {scale:2}, jsPDF: {unit:'in', format:'letter', orientation:'portrait'} }).from(document.getElementById('pdfWorkerReport')).save();
 
-            // १.५ सेकंदानंतर Excel डाउनलोड करणे
             setTimeout(() => {
                 let excelData = [];
                 myRecords.reverse().forEach((rec, i) => {
@@ -705,7 +735,6 @@
             }, 3000);
         }
 
-        // ⭐️ 2. पॉईंटनुसार अहवाल (PDF + Excel दोन्ही एकत्र)
         function downloadPointWiseReport() {
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
@@ -736,7 +765,6 @@
             });
             html2pdf().set({ margin: 0.5, filename: `PointWise_${currentCompanyCode}.pdf`, image: {type:'jpeg', quality:0.98}, html2canvas: {scale:2}, jsPDF: {unit:'in', format:'letter', orientation:'portrait'} }).from(document.getElementById('pdfPointWise')).save();
 
-            // १.५ सेकंदानंतर Excel डाउनलोड करणे
             setTimeout(() => {
                 let excelData = [];
                 points.forEach(point => {
@@ -759,7 +787,6 @@
             }, 1500);
         }
 
-        // ⭐️ 3. एकूण अहवाल (PDF + Excel दोन्ही एकत्र)
         function downloadOverallReport() {
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
@@ -782,7 +809,6 @@
             }
             html2pdf().set({ margin: 0.5, filename: `Overall_${currentCompanyCode}.pdf`, image: {type:'jpeg', quality:0.98}, html2canvas: {scale:2}, jsPDF: {unit:'in', format:'letter', orientation:'portrait'} }).from(document.getElementById('pdfOverall')).save();
 
-            // १.५ सेकंदानंतर Excel डाउनलोड करणे
             setTimeout(() => {
                 let excelData = [];
                 let j = 1;
@@ -796,34 +822,102 @@
             }, 1500);
         }
 
-        // ⭐️ 4. बँक पेमेंट लिस्ट (फक्त Excel)
+        // ⭐️ मॅन्युअली वर्कर ऍड करणे
+        function addManualWorkerToBank() {
+            let name = document.getElementById('manName').value.trim();
+            let bank = document.getElementById('manBank').value.trim();
+            let acc = document.getElementById('manAcc').value.trim();
+            let ifsc = document.getElementById('manIfsc').value.trim();
+            let amount = document.getElementById('manAmount').value;
+            let point = document.getElementById('manPoint').value.trim() || 'Manual Entry';
+
+            if (!name || !amount) { alert("Please enter Worker Name and Amount!"); return; }
+
+            let manualData = JSON.parse(localStorage.getItem('manualBankData_' + currentCompanyCode)) || {};
+            manualData[name] = { bank: bank || 'N/A', acc: acc || 'N/A', ifsc: ifsc || 'N/A', amount: parseFloat(amount), point: point };
+            
+            localStorage.setItem('manualBankData_' + currentCompanyCode, JSON.stringify(manualData));
+            alert(`✅ ${name} added to Bank List Successfully!`);
+            
+            // Clear inputs
+            document.getElementById('manName').value = '';
+            document.getElementById('manBank').value = '';
+            document.getElementById('manAcc').value = '';
+            document.getElementById('manIfsc').value = '';
+            document.getElementById('manAmount').value = '';
+            document.getElementById('manPoint').value = '';
+        }
+
         function generateBankExcel() {
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
-            if (companyRecords.length === 0) { alert("No attendance data found."); return; }
+            
+            // जर हजेरी नसेल पण मॅन्युअल डेटा असेल तर ते पण घ्या
+            let manualData = JSON.parse(localStorage.getItem('manualBankData_' + currentCompanyCode)) || {};
+
+            if (companyRecords.length === 0 && Object.keys(manualData).length === 0) { 
+                alert("No attendance or manual data found."); return; 
+            }
+
+            let selectedPoint = document.getElementById('bankListPointSelect').value;
+            let defaultWage = document.getElementById('bankListWageInput').value;
+
+            if (!defaultWage || defaultWage <= 0) { alert("Please enter valid daily wage."); return; }
+
+            let filteredRecords = companyRecords;
+            if (selectedPoint !== 'all') {
+                filteredRecords = companyRecords.filter(rec => rec.point === selectedPoint);
+            }
 
             let bankData = JSON.parse(localStorage.getItem('bankData')) || {};
-            let defaultWage = prompt("Enter Default Daily Wage (e.g. 500):", "500");
-            if (!defaultWage || defaultWage <= 0) { return; }
 
             let workerStats = {};
-            companyRecords.forEach(rec => {
+            filteredRecords.forEach(rec => {
                 if(!workerStats[rec.name]) workerStats[rec.name] = { days: 0 };
                 workerStats[rec.name].days += 1;
             });
 
             let excelData = [];
             let i = 1;
+
+            // 1. हजेरी असलेले कामगार
             for(let name in workerStats) {
                 let bData = bankData[name] || { bank: 'N/A', acc: 'N/A', ifsc: 'N/A', customAmount: null };
                 let finalAmount = bData.customAmount !== null ? bData.customAmount : (workerStats[name].days * defaultWage);
-                excelData.push({ "Sr.No.": i++, "Worker Name": name, "Bank Name": bData.bank, "Account Number": bData.acc, "IFSC Code": bData.ifsc, "Total Amount (₹)": finalAmount });
+                
+                excelData.push({
+                    "Sr.No.": i++,
+                    "Worker Name": name,
+                    "Point": selectedPoint === 'all' ? 'All' : selectedPoint,
+                    "Bank Name": bData.bank,
+                    "Account Number": bData.acc,
+                    "IFSC Code": bData.ifsc,
+                    "Total Amount (₹)": finalAmount
+                });
             }
+
+            // 2. मॅन्युअली ऍड केलेले कामगार
+            for(let name in manualData) {
+                let mData = manualData[name];
+                if (selectedPoint === 'all' || mData.point === selectedPoint) {
+                    excelData.push({
+                        "Sr.No.": i++,
+                        "Worker Name": name,
+                        "Point": mData.point,
+                        "Bank Name": mData.bank,
+                        "Account Number": mData.acc,
+                        "IFSC Code": mData.ifsc,
+                        "Total Amount (₹)": mData.amount
+                    });
+                }
+            }
+
+            if (excelData.length === 0) { alert("No records found for this point."); return; }
 
             let ws = XLSX.utils.json_to_sheet(excelData);
             let wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Bank Payment List");
-            XLSX.writeFile(wb, `BankList_${currentCompanyCode}.xlsx`);
+            XLSX.writeFile(wb, `BankList_${currentCompanyCode}_${selectedPoint}.xlsx`);
             alert("✅ Bank Excel Downloaded Successfully!");
         }
 
@@ -834,21 +928,39 @@
             let bankData = JSON.parse(localStorage.getItem('bankData')) || {};
             let currentBank = bankData[workerName] || { bank: '', acc: '', ifsc: '', customAmount: '' };
 
-            let newBank = prompt(`Bank Name for ${workerName}:`, currentBank.bank);
+            let newName = prompt("Edit Worker Name (Change spelling if wrong):", workerName);
+            if (newName === null) return;
+
+            let newBank = prompt(`Bank Name for ${newName}:`, currentBank.bank);
             if (newBank === null) return;
-            let newAcc = prompt(`Account Number for ${workerName}:`, currentBank.acc);
+            
+            let newAcc = prompt(`Account Number for ${newName}:`, currentBank.acc);
             if (newAcc === null) return;
-            let newIfsc = prompt(`IFSC Code for ${workerName}:`, currentBank.ifsc);
+            
+            let newIfsc = prompt(`IFSC Code for ${newName}:`, currentBank.ifsc);
             if (newIfsc === null) return;
-            let newAmount = prompt(`Custom Total Payment (₹) for ${workerName}:`, currentBank.customAmount || '');
+            
+            let newAmount = prompt(`Custom Total Payment (₹) for ${newName} (Leave blank for auto):`, currentBank.customAmount || '');
             if (newAmount === null) return;
 
-            bankData[workerName] = { 
+            // जर नाव बदललं असेल तर हजेरीत पण बदलावं लागेल
+            if (newName !== workerName) {
+                let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
+                records.forEach(rec => {
+                    if (rec.name === workerName && rec.company === currentCompanyCode) {
+                        rec.name = newName;
+                    }
+                });
+                localStorage.setItem('attendanceData', JSON.stringify(records));
+                delete bankData[workerName]; // जुनं नाव डिलीट करा
+            }
+
+            bankData[newName] = { 
                 bank: newBank, acc: newAcc, ifsc: newIfsc, 
                 customAmount: (newAmount.trim() === '') ? null : parseFloat(newAmount)
             };
             localStorage.setItem('bankData', JSON.stringify(bankData));
-            alert(`✅ Details updated for ${workerName}!`);
+            alert(`✅ Details updated for ${newName}!`);
         }
     </script>
 </body>
