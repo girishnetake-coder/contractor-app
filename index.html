@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DGN Digital Assistant</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <style>
         body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f0f2f5; color: #333; }
@@ -191,7 +192,8 @@
 
             <div class="report-section" style="margin-top:20px; border-color:#28a745;">
                 <h3>📄 My Attendance Report</h3>
-                <button class="action-btn overall-btn" onclick="generateWorkerOwnPDF()">📥 Download My PDF</button>
+                <!-- ⭐️ एकच बटन, पण PDF आणि Excel दोन्ही डाउनलोड होतील -->
+                <button class="action-btn overall-btn" onclick="downloadWorkerReport()">📥 Download My Report (PDF + Excel)</button>
                 <button class="action-btn wa-btn" onclick="sendWorkerPDFToSupervisor()">🟢 Send to Supervisor on WhatsApp</button>
             </div>
 
@@ -221,14 +223,15 @@
             <div id="pointWiseAttendanceList"></div>
             
             <div id="reportSection" class="report-section">
-                <h3>📑 PDF Reports</h3>
+                <h3>📑 PDF & Excel Reports</h3>
                 
-                <button class="action-btn report-btn" onclick="generatePointWisePDF()">1️⃣ Point-wise Attendance</button>
-                <button class="action-btn overall-btn" onclick="generateOverallPDF()">2️⃣ Overall Workers Report</button>
+                <!-- ⭐️ एकच बटन, पण PDF आणि Excel दोन्ही डाउनलोड होतील -->
+                <button class="action-btn report-btn" onclick="downloadPointWiseReport()">1️⃣ Point-wise Attendance (PDF + Excel)</button>
+                <button class="action-btn overall-btn" onclick="downloadOverallReport()">2️⃣ Overall Workers Report (PDF + Excel)</button>
                 
                 <hr style="margin: 15px 0; border-top: 1px solid #ccc;">
                 <h4>3️⃣ Bank Payment List</h4>
-                <button class="action-btn bank-btn" onclick="generateBankListPDF()">🏦 Download Bank Payment List</button>
+                <button class="action-btn bank-btn" onclick="generateBankExcel()">🏦 Download Bank Payment List</button>
                 <button class="action-btn" style="background:#6c757d; box-shadow: 0 5px 0 #4e555b;" onclick="editBankDetails()">✏️ Edit Bank & Payment Details</button>
             </div>
         </div>
@@ -260,24 +263,6 @@
         <table class="pdf-table">
             <thead><tr><th>Sr.No.</th><th>Worker Name</th><th>Mobile</th><th>Total Days</th><th>Overtime (Hrs)</th></tr></thead>
             <tbody id="ovTableBody"></tbody>
-        </table>
-    </div>
-
-    <div id="pdfBankList" class="pdf-container">
-        <h2 style="text-align:center;">Bank Payment List</h2>
-        <p style="text-align:center;">Company: <span id="blCompany"></span> | Date: <span id="blDate"></span></p>
-        <table class="pdf-table">
-            <thead>
-                <tr>
-                    <th>Sr.No.</th>
-                    <th>Worker Name</th>
-                    <th>Bank Name</th>
-                    <th>A/c Number</th>
-                    <th>IFSC Code</th>
-                    <th>Total Amount (₹)</th>
-                </tr>
-            </thead>
-            <tbody id="blTableBody"></tbody>
         </table>
     </div>
 
@@ -454,7 +439,6 @@
             }
 
             let bankData = JSON.parse(localStorage.getItem('bankData')) || {};
-            // जुना कस्टम अमाउंट असेल तर तो सेव्ह ठेवा
             let existingAmount = (bankData[currentWorkerName] && bankData[currentWorkerName].customAmount) ? bankData[currentWorkerName].customAmount : null;
             
             bankData[currentWorkerName] = { bank: bank, acc: acc, ifsc: ifsc, customAmount: existingAmount };
@@ -675,12 +659,13 @@
             return ot.toFixed(2);
         }
 
-        function generateWorkerOwnPDF() {
+        // ⭐️ 1. कामगार अहवाल (PDF + Excel दोन्ही एकत्र)
+        function downloadWorkerReport() {
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let myRecords = records.filter(rec => rec.company === currentCompanyCode && rec.name === currentWorkerName);
-            
             if (myRecords.length === 0) { alert("No attendance found."); return; }
 
+            // PDF तयार करणे
             document.getElementById('wrCompany').innerText = currentCompanyCode;
             document.getElementById('wrDate').innerText = new Date().toLocaleDateString('en-GB');
             document.getElementById('wrName').innerText = currentWorkerName;
@@ -690,39 +675,37 @@
             const tbody = document.getElementById('wrTableBody');
             tbody.innerHTML = '';
             myRecords.reverse().forEach((rec, i) => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${i+1}</td>
-                        <td>${rec.date}</td>
-                        <td>${rec.inTime}</td>
-                        <td>${rec.outTime || '--'}</td>
-                        <td>${rec.point}</td>
-                    </tr>
-                `;
+                tbody.innerHTML += `<tr><td>${i+1}</td><td>${rec.date}</td><td>${rec.inTime}</td><td>${rec.outTime || '--'}</td><td>${rec.point}</td></tr>`;
             });
-
             html2pdf().set({ margin: 0.5, filename: `MyReport_${currentWorkerName}.pdf`, image: {type:'jpeg', quality:0.98}, html2canvas: {scale:2}, jsPDF: {unit:'in', format:'letter', orientation:'portrait'} }).from(document.getElementById('pdfWorkerReport')).save();
+
+            // १.५ सेकंदानंतर Excel डाउनलोड करणे
+            setTimeout(() => {
+                let excelData = [];
+                myRecords.reverse().forEach((rec, i) => {
+                    excelData.push({ "Sr.No.": i+1, "Date": rec.date, "IN Time": rec.inTime, "OUT Time": rec.outTime || '--', "Point": rec.point });
+                });
+                let ws = XLSX.utils.json_to_sheet(excelData);
+                let wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "My Report");
+                XLSX.writeFile(wb, `MyReport_${currentWorkerName}.xlsx`);
+            }, 1500);
         }
 
         function sendWorkerPDFToSupervisor() {
             let supervisorWa = localStorage.getItem('supervisorWa_' + currentCompanyCode);
-            
-            if (!supervisorWa) {
-                alert("❌ Supervisor WhatsApp number not saved. Please ask supervisor to login first.");
-                return;
-            }
+            if (!supervisorWa) { alert("❌ Supervisor WhatsApp number not saved."); return; }
 
-            generateWorkerOwnPDF();
-
+            downloadWorkerReport();
             setTimeout(() => {
-                alert("Your PDF is downloaded. Opening WhatsApp now. Please attach the downloaded PDF.");
+                alert("Your PDF is downloaded. Opening WhatsApp now.");
                 let message = encodeURIComponent(`Hello Sir, I am ${currentWorkerName}. Sending my attendance report (PDF).`);
-                let waLink = `whatsapp://send?phone=91${supervisorWa}&text=${message}`;
-                window.location.href = waLink;
+                window.location.href = `whatsapp://send?phone=91${supervisorWa}&text=${message}`;
             }, 3000);
         }
 
-        function generatePointWisePDF() {
+        // ⭐️ 2. पॉईंटनुसार अहवाल (PDF + Excel दोन्ही एकत्र)
+        function downloadPointWiseReport() {
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
             if (companyRecords.length === 0) { alert("No data."); return; }
@@ -751,9 +734,32 @@
                 contentDiv.innerHTML += tableHTML;
             });
             html2pdf().set({ margin: 0.5, filename: `PointWise_${currentCompanyCode}.pdf`, image: {type:'jpeg', quality:0.98}, html2canvas: {scale:2}, jsPDF: {unit:'in', format:'letter', orientation:'portrait'} }).from(document.getElementById('pdfPointWise')).save();
+
+            // १.५ सेकंदानंतर Excel डाउनलोड करणे
+            setTimeout(() => {
+                let excelData = [];
+                points.forEach(point => {
+                    let pointRecords = companyRecords.filter(rec => rec.point === point);
+                    let workerStats = {};
+                    pointRecords.forEach(rec => {
+                        if(!workerStats[rec.name]) workerStats[rec.name] = { days: 0, ot: 0 };
+                        workerStats[rec.name].days += 1;
+                        workerStats[rec.name].ot += parseFloat(calculateOT(rec.inTimestamp, rec.outTimestamp));
+                    });
+                    let i = 1;
+                    for(let name in workerStats) {
+                        excelData.push({ "Point": point, "Sr.No.": i++, "Worker Name": name, "Total Days": workerStats[name].days, "Overtime (Hrs)": workerStats[name].ot });
+                    }
+                });
+                let ws = XLSX.utils.json_to_sheet(excelData);
+                let wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Point-wise");
+                XLSX.writeFile(wb, `PointWise_${currentCompanyCode}.xlsx`);
+            }, 1500);
         }
 
-        function generateOverallPDF() {
+        // ⭐️ 3. एकूण अहवाल (PDF + Excel दोन्ही एकत्र)
+        function downloadOverallReport() {
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
             if (companyRecords.length === 0) { alert("No data."); return; }
@@ -774,9 +780,23 @@
                 tbody.innerHTML += `<tr><td>${i++}</td><td>${name}</td><td>${workerStats[name].mobile}</td><td>${workerStats[name].days}</td><td>${workerStats[name].ot}</td></tr>`;
             }
             html2pdf().set({ margin: 0.5, filename: `Overall_${currentCompanyCode}.pdf`, image: {type:'jpeg', quality:0.98}, html2canvas: {scale:2}, jsPDF: {unit:'in', format:'letter', orientation:'portrait'} }).from(document.getElementById('pdfOverall')).save();
+
+            // १.५ सेकंदानंतर Excel डाउनलोड करणे
+            setTimeout(() => {
+                let excelData = [];
+                let j = 1;
+                for(let name in workerStats) {
+                    excelData.push({ "Sr.No.": j++, "Worker Name": name, "Mobile": workerStats[name].mobile, "Total Days": workerStats[name].days, "Overtime (Hrs)": workerStats[name].ot });
+                }
+                let ws = XLSX.utils.json_to_sheet(excelData);
+                let wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Overall Report");
+                XLSX.writeFile(wb, `Overall_${currentCompanyCode}.xlsx`);
+            }, 1500);
         }
 
-        function generateBankListPDF() {
+        // ⭐️ 4. बँक पेमेंट लिस्ट (फक्त Excel)
+        function generateBankExcel() {
             let records = JSON.parse(localStorage.getItem('attendanceData')) || [];
             let companyRecords = records.filter(rec => rec.company === currentCompanyCode);
             if (companyRecords.length === 0) { alert("No attendance data found."); return; }
@@ -791,33 +811,21 @@
                 workerStats[rec.name].days += 1;
             });
 
-            document.getElementById('blCompany').innerText = currentCompanyCode;
-            document.getElementById('blDate').innerText = new Date().toLocaleDateString('en-GB');
-            
-            const tbody = document.getElementById('blTableBody');
-            tbody.innerHTML = '';
+            let excelData = [];
             let i = 1;
             for(let name in workerStats) {
                 let bData = bankData[name] || { bank: 'N/A', acc: 'N/A', ifsc: 'N/A', customAmount: null };
-                // जर कस्टम अमाउंट टाकला असेल तर तो वापरा, नाहीतर हजेरी x रोजंदारी करा
                 let finalAmount = bData.customAmount !== null ? bData.customAmount : (workerStats[name].days * defaultWage);
-                
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${i++}</td>
-                        <td>${name}</td>
-                        <td>${bData.bank}</td>
-                        <td>${bData.acc}</td>
-                        <td>${bData.ifsc}</td>
-                        <td style="font-weight:bold;">₹ ${finalAmount}</td>
-                    </tr>
-                `;
+                excelData.push({ "Sr.No.": i++, "Worker Name": name, "Bank Name": bData.bank, "Account Number": bData.acc, "IFSC Code": bData.ifsc, "Total Amount (₹)": finalAmount });
             }
 
-            html2pdf().set({ margin: 0.5, filename: `BankList_${currentCompanyCode}.pdf`, image: {type:'jpeg', quality:0.98}, html2canvas: {scale:2}, jsPDF: {unit:'in', format:'letter', orientation:'landscape'} }).from(document.getElementById('pdfBankList')).save();
+            let ws = XLSX.utils.json_to_sheet(excelData);
+            let wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Bank Payment List");
+            XLSX.writeFile(wb, `BankList_${currentCompanyCode}.xlsx`);
+            alert("✅ Bank Excel Downloaded Successfully!");
         }
 
-        // ⭐️ बँक आणि पेमेंट एडिट करण्याचे फंक्शन
         function editBankDetails() {
             let workerName = prompt("Enter Worker Name to edit details:");
             if (!workerName) return;
@@ -826,24 +834,18 @@
             let currentBank = bankData[workerName] || { bank: '', acc: '', ifsc: '', customAmount: '' };
 
             let newBank = prompt(`Bank Name for ${workerName}:`, currentBank.bank);
-            if (newBank === null) return; // रद्द केल्यास बाहेर पडा
-
+            if (newBank === null) return;
             let newAcc = prompt(`Account Number for ${workerName}:`, currentBank.acc);
             if (newAcc === null) return;
-
             let newIfsc = prompt(`IFSC Code for ${workerName}:`, currentBank.ifsc);
             if (newIfsc === null) return;
-
-            let newAmount = prompt(`Custom Total Payment (₹) for ${workerName} (Leave blank to auto-calculate):`, currentBank.customAmount || '');
+            let newAmount = prompt(`Custom Total Payment (₹) for ${workerName}:`, currentBank.customAmount || '');
             if (newAmount === null) return;
 
             bankData[workerName] = { 
-                bank: newBank, 
-                acc: newAcc, 
-                ifsc: newIfsc, 
+                bank: newBank, acc: newAcc, ifsc: newIfsc, 
                 customAmount: (newAmount.trim() === '') ? null : parseFloat(newAmount)
             };
-            
             localStorage.setItem('bankData', JSON.stringify(bankData));
             alert(`✅ Details updated for ${workerName}!`);
         }
